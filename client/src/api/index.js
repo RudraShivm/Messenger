@@ -1,6 +1,6 @@
 import axios from 'axios';
-
-const API = axios.create({baseURL:'https://messenger-9ck7.onrender.com'});
+import serverBaseURL from '../../serverBaseURL';
+const API = axios.create({baseURL:`${serverBaseURL}`});
 
 API.interceptors.request.use((req) =>{
     if(localStorage.getItem('profile')){

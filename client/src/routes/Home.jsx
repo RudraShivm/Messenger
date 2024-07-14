@@ -10,7 +10,8 @@ import animationData from "../images/Animation - 1720284169313.json";
 import loadingContext from "./loadingContext";
 import { CREATECHAT } from "../constants/actionTypes";
 import { useMediaQuery } from "react-responsive";
-const socket = io("http://localhost:3000");
+import serverBaseURL from "../../serverBaseURL";
+const socket = io(`${serverBaseURL}`);
 
 export async function loader({ request }) {
   const url = new URL(request.url);

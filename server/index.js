@@ -12,7 +12,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // Adjust as needed for your setup
+    origin: "https://absolutelyoriginalmessenger.netlify.app",
     methods: ["GET", "POST"],
   },
 });
