@@ -15,10 +15,21 @@ export default {
     },
     extend: {
       maxWidth: {
-        '1/3': '33.33%',
+        '1/2': '50%',
+      },
+      fontFamily: {
+        emoji: [
+          'Apple Color Emoji', 
+          'Segoe UI Emoji', 
+          'Segoe UI Symbol', 
+          'sans-serif', 
+          'Noto Color Emoji', 
+          'Android Emoji', 
+        ],
       },
     },
   },
+  
   plugins: [],
 }
 

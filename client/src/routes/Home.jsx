@@ -237,7 +237,7 @@ function Home() {
           </div>
           <SearchBar searching={searching} s={s}/>
           <div className="overflow-y-auto">
-          {chatsArr.slice().reverse().map((chatObj) => {
+          {chatsArr?.slice().reverse().map((chatObj) => {
             return (
               <ChatCard
                 user={chatObj.user}

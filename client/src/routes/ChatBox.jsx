@@ -42,37 +42,34 @@ function ChatBox() {
   return (
     <div className="absolute top-0 left-0 h-full w-full md:click-through">
       <div className="absolute flex flex-row items-center z-10 md:right-[0.75rem] xs:right-[0.375rem] top-[0.75rem] lg:w-[calc(66.67%-0.75rem)] md:w-[calc(60%-0.75rem)] xs:w-[calc(100%-0.75rem)] md:h-[5.25rem] xs:h-[4.25rem] bg-[#222323] rounded-t-lg">
-        { isSmallScreen &&
-        <button 
-          onClick={handleClick}
-          className="ml-2"
-        >
-          <svg
-            width="28px"
-            height="28px"
-            viewBox="0 0 1024 1024"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="#000000"
-          >
-            <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-            <g
-              id="SVGRepo_tracerCarrier"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            ></g>
-            <g id="SVGRepo_iconCarrier">
-              <path
-                fill="#ffffff"
-                d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
-              ></path>
-              <path
-                fill="#ffffff"
-                d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
-              ></path>
-            </g>
-          </svg>
-        </button>
-        }
+        {isSmallScreen && (
+          <button onClick={handleClick} className="ml-2">
+            <svg
+              width="28px"
+              height="28px"
+              viewBox="0 0 1024 1024"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="#000000"
+            >
+              <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+              <g
+                id="SVGRepo_tracerCarrier"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              ></g>
+              <g id="SVGRepo_iconCarrier">
+                <path
+                  fill="#ffffff"
+                  d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64z"
+                ></path>
+                <path
+                  fill="#ffffff"
+                  d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312L237.248 512z"
+                ></path>
+              </g>
+            </svg>
+          </button>
+        )}
         <div className="2xl:h-[3.5rem] 2xl:w-[3.5rem] xs:h-[2.5rem] xs:w-[2.5rem] md:ml-4 xs:ml-2 flex flex-row justify-center items-center">
           <img
             src={secondPerson?.profile_picture}
@@ -139,13 +136,27 @@ function ChatBox() {
               })}
           </>
         )}
-        <div className="absolute bottom-0 right-1/3 transition ease-in-out">
+        <div className="absolute bottom-0 md:right-1/3 xs:flex  transition ease-in-out">
           <EmojiPicker
             open={emojiPanel}
             theme="dark"
             lazyLoadEmojis="true"
-            onEmojiClick={(emojiData, e) => setMsg(msg + emojiData.emoji)}
-            className=""
+            // functional update
+            onEmojiClick={(emojiData, e) =>
+              setMsg((currentMsg) => currentMsg + emojiData.emoji)
+            }
+            //User triggers onEmojiClick, calling setMsg.
+            // React queues the state update but doesn't apply it immediately.
+            // Any code running right after setMsg still sees the old state.
+            // React completes the current execution context (e.g., the event handler).
+            // React updates the state, causing a re-render.
+            // After the re-render, useEffect with msg in its dependency array runs, now with the updated state.
+
+            // useEffect hook does indeed run after the state has been updated and the component has re-rendered, 
+            // but the state doesn't change "right away" in the sense that it's not immediately available
+            height={"335px"}
+            width={"335px"}
+            previewConfig={{ showPreview: false }}
           />
         </div>
       </div>
@@ -160,7 +171,7 @@ function ChatBox() {
             rows="1"
             value={msg}
             onChange={(e) => setMsg(e.target.value)}
-            className="border-1 text-white resize-none rounded-xl bg-[#3a3b3c] outline-none mt-1 py-2.5 lg:w-9/12 sm:w-9/12 pl-4 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 2xl:text-xl lg:text-base md:text-base"
+            className="border-1 font-emoji text-white resize-none rounded-xl bg-[#3a3b3c] outline-none mt-1 py-2.5 lg:w-9/12 sm:w-9/12 pl-4 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6 2xl:text-xl lg:text-base md:text-base"
             placeholder="Message..."
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {

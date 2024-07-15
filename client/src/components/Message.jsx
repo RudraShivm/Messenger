@@ -11,8 +11,8 @@ function Message({ user, secondPerson, sender, msg }) {
           className='rounded-[50%] h-full w-auto min-w-[100%] object-cover'
         />
       </div>
-      <div className="bg-[#58A89B] h-auto max-w-1/3 my-3 px-4 rounded-3xl flex flex-col justify-center" >
-        <p className='text-[#232423] 2xl:text-xl lg:text-lg overflow-ellipsis break-words whitespace-pre-wrap'>
+      <div className="bg-[#58A89B] h-auto max-w-1/2 my-3 px-4 rounded-2xl flex flex-col justify-center" >
+        <p className='text-[#232423] font-emoji 2xl:text-xl lg:text-lg overflow-ellipsis break-words whitespace-pre-wrap'>
           {msg}
         </p>
       </div>
