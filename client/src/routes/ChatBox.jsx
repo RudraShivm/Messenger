@@ -204,6 +204,7 @@ function ChatBox() {
             onClick={() => {
               setEmojiPanel(!emojiPanel);
             }}
+            type="button"
           >
             <svg
               className="lg:h-[28px] lg:w-[28px] xs:h-[20px] xs:w-[20px]"
