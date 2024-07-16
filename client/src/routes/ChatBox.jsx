@@ -34,11 +34,18 @@ function ChatBox() {
         user._id,
         msg
       );
+      setMsg("");
     }
   };
   const handleClick = () => {
     navigate("/home");
   };
+  const handleChatBoxClick = ()=>{
+    setEmojiPanel(false);
+  };
+  const handleEmojiPickerClick = (e)=>{
+    e.stopPropagation();
+  }
   return (
     <div className="absolute top-0 left-0 h-full w-full md:click-through">
       <div className="absolute flex flex-row items-center z-10 md:right-[0.75rem] xs:right-[0.375rem] top-[0.75rem] lg:w-[calc(66.67%-0.75rem)] md:w-[calc(60%-0.75rem)] xs:w-[calc(100%-0.75rem)] md:h-[5.25rem] xs:h-[4.25rem] bg-[#222323] rounded-t-lg">
@@ -84,6 +91,7 @@ function ChatBox() {
       <div
         className="absolute z-10 md:h-[calc(100%-10.75rem)] xs:h-[calc(100%-9.75rem)] overflow-y-auto flex flex-col-reverse lg:w-[calc(66.67%-0.75rem)] md:w-[calc(60%-0.75rem)] xs:w-[calc(100%-0.75rem)] md:right-[0.75rem] xs:right-[0.375rem] bottom-[4.75rem] bg-fixed"
         style={{ backgroundImage: `url(${background})` }}
+        onClick={handleChatBoxClick}
       >
         {chat.messages.length == 0 ? (
           <div className="h-full w-full flex flex-col justify-center items-center">
@@ -136,7 +144,10 @@ function ChatBox() {
               })}
           </>
         )}
-        <div className="absolute bottom-0 md:right-1/3 xs:flex  transition ease-in-out">
+        <div 
+          className="absolute bottom-0 md:right-1/3 xs:flex  transition ease-in-out"
+          onClick={handleEmojiPickerClick}
+        >
           <EmojiPicker
             open={emojiPanel}
             theme="dark"
@@ -154,8 +165,10 @@ function ChatBox() {
 
             // useEffect hook does indeed run after the state has been updated and the component has re-rendered, 
             // but the state doesn't change "right away" in the sense that it's not immediately available
-            height={"335px"}
-            width={"335px"}
+            height={"270px"}
+            width={"320px"}
+            searchDisabled = {true}
+            style={{opacity:"0.8"}}
             previewConfig={{ showPreview: false }}
           />
         </div>

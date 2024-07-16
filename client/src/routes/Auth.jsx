@@ -80,7 +80,7 @@ function Auth() {
   });
 
   return (
-    <div className="flex justify-center items-center min-h-screen w-screen bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
+    <div className="flex justify-center items-center min-h-dvh w-screen bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
       <div
         className={`container bg-[#222323] ${
           signUp ? "h-5/6" : "h-1/2"

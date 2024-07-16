@@ -8,7 +8,7 @@ export default function ErrorPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-center px-4">
+    <div className="flex flex-col items-center justify-center h-dvh bg-gray-900 text-center px-4">
       <svg
         width="164px"
         height="164px"

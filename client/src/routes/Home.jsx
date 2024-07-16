@@ -159,12 +159,12 @@ function Home() {
   };
   //Using ContextProvider is pretty inconvenient after using so much redux. Also it is like the pirated broken copy of react props xd
   return (
-    <div className="relative h-full w-full ">
+    <div className="relative">
       <loadingContext.Provider value={setLoading}>
         <Outlet />
       </loadingContext.Provider>
       
-      <div className={`h-screen lg:w-1/3 md:w-2/5 xs:w-full bg-[#191919] flex justify-center items-center`}>
+      <div className={`h-dvh lg:w-1/3 md:w-2/5 xs:w-full bg-[#191919] flex justify-center items-center`}>
         {showHomeComp &&
         <div className="w-[calc(100%-1.5rem)] h-[calc(100%-1.5rem)] bg-[#222323] rounded-lg">
           <div className="flex flex-row relative">
@@ -260,7 +260,7 @@ function Home() {
         }
       </div>
       {!isSmallScreen &&
-      <div className="h-screen lg:w-2/3 md:w-3/5 absolute right-0 top-0 bg-[#191919] flex flex-col justify-center items-center ">
+      <div className="h-dvh lg:w-2/3 md:w-3/5 absolute right-0 top-0 bg-[#191919] flex flex-col justify-center items-center ">
         {loading ? (
           <div className="my-4">
             <Lottie options={defaultOptions} height={200} width={200} />

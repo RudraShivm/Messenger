@@ -5,7 +5,10 @@
 .click-through {
   pointer-events: none;
 }
-
+.scanner-styles {
+  height: 80%;
+  width: 80%;
+}
 @keyframes popFromBelow {
     0% {
       transform: translateY(100%);
