@@ -18,7 +18,8 @@ function SearchUser() {
   const chatsArr = currentUser.chats;
   const [loadingOnSearchUser, setLoadingOnSearchUser] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
-  const [facingMode, setFacingMode] =useState("environment");
+  const [devices, setDevices] = useState([]);
+  const [currentDeviceId, setCurrentDeviceId] = useState('');
   const [validity, setValidity] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -73,7 +74,6 @@ function SearchUser() {
         }
       }
     } catch (error) {
-      console.log(error);
       if (error.response.status === 404 || error.response.status === 400) {
         setValidity(false);
         setMessage(error.response.data.message);
@@ -83,10 +83,30 @@ function SearchUser() {
 
   useEffect(() => {
     if (inviteId) {
-      console.log("here");
       inviteHelper(inviteId);
     }
   }, []);
+
+  useEffect(() => {
+    // Fetch and set devices on component mount
+    const getDevices = async () => {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      setDevices(videoDevices);
+      if (videoDevices.length > 0) {
+        setCurrentDeviceId(videoDevices[0].deviceId);
+      }
+    };
+
+    getDevices();
+  }, []);
+  const switchCamera = () => {
+    // Find the index of the current device and switch to the next one
+    const currentIndex = devices.findIndex(device => device.deviceId === currentDeviceId);
+    // Cycle through the devices
+    const nextIndex = (currentIndex + 1) % devices.length; 
+    setCurrentDeviceId(devices[nextIndex].deviceId);
+  };
 
   const handleChange = async (e) => {
     const link = e.target.value;
@@ -129,9 +149,6 @@ function SearchUser() {
   };
   const handleCameraSwitch = () => {
     setShowCamera(true);
-  };
-  const toggleFacingMode = () => {
-    setFacingMode((prevMode) => (prevMode === "user" ? "environment" : "user"));
   };
   return (
     <div
@@ -282,10 +299,10 @@ function SearchUser() {
                 <>
                   <Scanner
                     onScan={(result) => console.log(result)}
-                    facingMode={facingMode}
+                    facingMode={currentDeviceId ? { exact: currentDeviceId } : 'environment'}
                   />
                   <button
-                    onClick={toggleFacingMode}
+                    onClick={switchCamera}
                     className="bg-[#222] absolute bottom-0 w-full text-gray-600 rounded-b-md"
                   >
                     Switch Camera

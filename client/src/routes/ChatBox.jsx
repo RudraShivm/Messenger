@@ -35,6 +35,7 @@ function ChatBox() {
         msg
       );
       setMsg("");
+      setEmojiPanel(false);
     }
   };
   const handleClick = () => {
@@ -188,9 +189,7 @@ function ChatBox() {
             placeholder="Message..."
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
                 handleSubmit(e);
-                setMsg("");
               }
             }}
           />
