@@ -12,15 +12,15 @@ export const getInvite = async (req, res) => {
     }
 }
 
+
 export const createInvite = async (req, res) => {
-    const {userId} = req.body;
+    const {userId, access_token} = req.body;
     //15 mins validity
     const validityTime = 1000*60*15;
     try {
         const newInvite = await InviteModel.create({user : userId, expiryTime : Date.now() + validityTime});
-        if( newInvite ) return res.status(201).json(newInvite);
+        if( newInvite ) return res.status(201).json({newInvite, token : access_token});
     } catch (error) {
-        console.log(error);
         res.status(500).json({message : "Something went wrong"});
     }
 }
