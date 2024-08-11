@@ -120,7 +120,6 @@ function ChatBox() {
     setSelected({});
   };
   const handleChatBoxClick = () => {
-    console.log("clicked");
     setEmojiPanel(false);
     setShowMorePanel(false);
     setActiveReactionBoxMsgId(null);
@@ -130,7 +129,6 @@ function ChatBox() {
     }
   };
   const handleEmojiPickerClick = (e) => {
-    console.log("emoji clicked")
     e.stopPropagation();
   };
   const emojiButtonClick = () => {
@@ -279,7 +277,10 @@ function ChatBox() {
           onClick={handleChatBoxClick}
         >
           {showMorePanel && (
-            <div className={`transition ease-in-out flex ${morePanelAnimationClass}`}>
+            <div 
+              className={`transition ease-in-out flex ${morePanelAnimationClass}`}
+              onClick={(e)=> e.stopPropagation()}
+            >
               <div>
                 <div id="drag-drop-area" className="z-20"></div>
                 <div className="h-[270px] w-[320px] bg-[#222323] rounded-lg border-[1px] border-[#3a3b3c] p-3">
