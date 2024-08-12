@@ -6,8 +6,6 @@ const API = axios.create({
 
 
 
-if (window.location.pathname !== "/auth") {
-  console.log("not auth");
   // we can't setup API before login, if we try to manually type any other path that would lead to auth page
   API.interceptors.request.use((req) => {
     const user = localStorage.getItem("profile");
@@ -38,12 +36,6 @@ if (window.location.pathname !== "/auth") {
       });
     }
   });
-}else{
-  console.log("auth");
-  API.interceptors.request.use((req) => {
-    return req;
-  });
-}
 
 const handleApiCall = async (apiCall) => {
   const response = await apiCall();
