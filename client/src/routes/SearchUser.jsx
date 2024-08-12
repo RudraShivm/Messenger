@@ -139,6 +139,7 @@ function SearchUser() {
           qrScannerRef.current = new QrScanner(
             videoRef.current,
             (result) => {
+              alert(result.data);
               inviteLinkValidate(import.meta.env.VITE_SERVER_BASE_URL+"/invite/"+result.data);
             },
             { returnDetailedScanResult: true, preferredCamera: currentDeviceId }
