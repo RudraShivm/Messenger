@@ -41,6 +41,7 @@ const API = axios.create({
 
 const handleApiCall = async (apiCall) => {
   const response = await apiCall();
+  console.log(response);
   if(response?.data){
     const { data } = response;
     const { access_token } = data;
@@ -86,7 +87,4 @@ export const createChat = async (user1Id, user2Id) =>
 export const getInvite = async (inviteId) =>
   handleApiCall(() => API.get(`/invite/${inviteId}`));
 export const createInvite = async (userId) =>
-  handleApiCall(() => {
-    API.post("/invite/create", { userId })
-  }
-  );
+  handleApiCall(() => API.post("/invite/create", { userId }));
