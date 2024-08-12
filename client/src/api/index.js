@@ -7,6 +7,7 @@ if (window.location.pathname !== "/auth") {
   // we can't setup API before login, if we try to manually type any other path that would lead to auth page
   console.log("a");
   API.interceptors.request.use((req) => {
+    console.log("starts");
     const user = localStorage.getItem("profile");
     if (user) {
       console.log("b");
