@@ -141,7 +141,7 @@ const authReducer = (
       }
 
       //when that particular chat is not loaded on this user
-      if (!typeof chatObj.chat !== "object") return state;
+      if (typeof chatObj.chat !== "object") return state;
 
       let msgObj;
       if (action?.payload.messageId) {
@@ -167,6 +167,7 @@ const authReducer = (
           reactionObj.emoji == action?.payload.emoji
             ? null
             : action?.payload.emoji;
+
       } else {
         msgObj.reaction.push({
           user: action?.payload.userId,
