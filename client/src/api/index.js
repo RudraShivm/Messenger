@@ -3,29 +3,28 @@ import Cookies from "js-cookie";
 const API = axios.create({
   baseURL: `${import.meta.env.VITE_SERVER_BASE_URL}`,
 });
+
+API.interceptors.request.use((req) => {
+  return req;
+});
+
 if (window.location.pathname !== "/auth") {
   // we can't setup API before login, if we try to manually type any other path that would lead to auth page
-  console.log("a");
   API.interceptors.request.use((req) => {
-    console.log("starts");
     const user = localStorage.getItem("profile");
     if (user) {
-      console.log("b");
       const userId = JSON.parse(user).user._id;
       if (
         req.url !== "/user/signin" &&
         req.url !== "/user/googleSignin" &&
         req.url !== "/user/signout"
       ) {
-        console.log("c");
         let token = Cookies.get("token");
         if (token) {
-          console.log("d");
           req.headers.Authorization = `Bearer ${token}`;
           req.headers["userId"] = userId;
           return req;
         } else {
-          console.log("e");
           throw new Response("", {
             status: 404,
             statusText: "Token Not Found",
@@ -33,7 +32,6 @@ if (window.location.pathname !== "/auth") {
         }
       }
     } else {
-      console.log("f");
       window.location.href = "/auth";
       throw new Response("", {
         status: 404,
@@ -45,16 +43,18 @@ if (window.location.pathname !== "/auth") {
 
 const handleApiCall = async (apiCall) => {
   const response = await apiCall();
-  const { data } = response;
-  const { access_token } = data;
-  if (access_token) {
-    Cookies.set("token", access_token, {
-      secure: true,
-      sameSite: "strict",
-      expires: 7,
-    });
-    let { access_token: _, ...data_wo_access_token } = data;
-    return { data: data_wo_access_token, ...response };
+  if(response.data && response.access_token){
+    const { data } = response;
+    const { access_token } = data;
+    if (access_token) {
+      Cookies.set("token", access_token, {
+        secure: true,
+        sameSite: "strict",
+        expires: 7,
+      });
+      let { access_token: _, ...data_wo_access_token } = data;
+      return { data: data_wo_access_token, ...response };
+    }
   }
   return response;
 };
@@ -89,7 +89,6 @@ export const getInvite = async (inviteId) =>
   handleApiCall(() => API.get(`/invite/${inviteId}`));
 export const createInvite = async (userId) =>
   handleApiCall(() => {
-    console.log("handlecreateinvite")
     API.post("/invite/create", { userId })
   }
   );
