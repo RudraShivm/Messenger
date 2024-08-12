@@ -1,7 +1,7 @@
 import * as api from "../api/index";
 import Cookies from "js-cookie";
 import { UPDATESEARCH } from "../constants/actionTypes";
-
+import { errorDispatcher } from "../functions/errorDispatcher";
 export const updateSearch = (payload) => async (dispatch) => {
   try {
     dispatch({ type: UPDATESEARCH, payload });
