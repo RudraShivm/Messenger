@@ -41,7 +41,7 @@ const API = axios.create({
 
 const handleApiCall = async (apiCall) => {
   const response = await apiCall();
-  if(response.data && response.data?.access_token){
+  if(response?.data){
     const { data } = response;
     const { access_token } = data;
     if (access_token) {
