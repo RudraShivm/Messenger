@@ -72,7 +72,6 @@ function SearchUser() {
             )
           );
         } else {
-          alert("got here to create chat");
           dispatch(
             createChat(currentUser._id, data.user, navigate, setLoading)
           );
@@ -86,8 +85,8 @@ function SearchUser() {
     }
   };
 
-  async function  inviteLinkValidate(link) {
-    const baseStr = `${window.location.origin}/invite/`;
+  async function inviteLinkValidate(link) {
+    const baseStr = `${import.meta.env.VITE_CLIENT_BASE_URL}/invite/`;
     let valid = link.trim().startsWith(baseStr);
     if (valid) {
       setValidity(valid);
@@ -139,11 +138,27 @@ function SearchUser() {
 
           qrScannerRef.current = new QrScanner(
             videoRef.current,
-            async (result) =>{
-              alert(result.data);
-              await inviteLinkValidate(import.meta.env.VITE_SERVER_BASE_URL+"/invite/"+result.data);
+            async (result) => {
+              await inviteLinkValidate(
+                import.meta.env.VITE_CLIENT_BASE_URL + "/invite/" + result.data
+              );
             },
-            { returnDetailedScanResult: true, preferredCamera: currentDeviceId }
+            {
+              returnDetailedScanResult: true,
+              preferredCamera: currentDeviceId,
+              highlightScanRegion: true,
+              highlightCodeOutline: true,
+              calculateScanRegion: (video) => {
+                return {
+                  x: 0,
+                  y: 0,
+                  width: video.videoWidth,
+                  height: video.videoHeight,
+                  downScaledWidth: video.videoWidth, // Maintain aspect ratio
+                  downScaledHeight: video.videoHeight, // Maintain aspect ratio
+                };
+              },
+            }
           );
 
           await qrScannerRef.current.start();
@@ -182,7 +197,7 @@ function SearchUser() {
   const handleQRClick = async () => {
     setMessage("");
     const { data } = await api.createInvite(currentUser._id);
-    setInviteLink(`${window.location.origin}/invite/${data.newInvite._id}`);
+    setInviteLink(`${import.meta.env.VITE_CLIENT_BASE_URL}/invite/${data.newInvite._id}`);
   };
 
   const handleCopyClick = () => {
@@ -253,21 +268,23 @@ function SearchUser() {
           )}
         </div>
         <div
-          className={`text-sm text-center ${
+          className={`text-[10px] text-center ${
             validity ? "text-green-400" : "text-red-600"
-          } font-light mx-8`}
+          } font-light mx-8 h-4`}
         >
           {message}
         </div>
         {inviteLink.length != 0 ? (
           <div className="flex flex-col justify-center items-center h-[calc(100%-5rem)] w-full">
             <QRCode
-              size={256}
-              className="h-[calc(100%-1rem)]"
-              value={inviteLink.split('/').pop()}
+              // size={256}
+              className="h-[calc(100%-1rem)] aspect-square p-2 bg-white"
+              value={inviteLink.split("/").pop()}
               viewBox={`0 0 256 256`}
-              fgColor='#D3D3D3'
-              bgColor='#464747'
+              // fgColor="#D3D3D3"
+              // bgColor="#464747"
+              // fgColor="#c70d00"
+              // bgColor="#008700"
             />
             <div className="text-sm text-zinc-50 font-light italic my-2">
               share invite link or scan the QR code
@@ -287,7 +304,10 @@ function SearchUser() {
                       />
                     </div>
                   )}
-                  <video ref={videoRef} style={{ width: '240px', height: '190px' }}></video>
+                  <video
+                    ref={videoRef}
+                    style={{ width: "240px", height: "190px" }}
+                  ></video>
                   <button
                     onClick={switchCamera}
                     className="bg-[#222] absolute bottom-0 w-full text-gray-600 rounded-b-md"
@@ -298,7 +318,7 @@ function SearchUser() {
               ) : (
                 <>
                   <div
-                    className="h-full flex flex-col justify-center items-center bg-[#222] rounded-2xl cursor-pointer"
+                    className="h-full w-full flex flex-col justify-center items-center bg-[#222] rounded-2xl cursor-pointer"
                     onClick={handleCameraSwitch}
                   >
                     <ScanIcon />
