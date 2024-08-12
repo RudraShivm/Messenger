@@ -265,7 +265,7 @@ function SearchUser() {
               value={inviteLink.split('/').pop()}
               viewBox={`0 0 256 256`}
               fgColor='#D3D3D3'
-              bgColor='#1A1A1A'
+              bgColor='#464747'
             />
             <div className="text-sm text-zinc-50 font-light italic my-2">
               share invite link or scan the QR code
