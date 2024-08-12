@@ -66,10 +66,10 @@ function Auth() {
 
   return (
     <div className="flex justify-center lg:justify-end items-center min-h-dvh w-screen bg-hero-bg">
-      <div className="h-dvh w-11/12 sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-2/5 2xl:w-1/3 flex justify-center items-center">
+      <div className={`h-dvh ${signUp ? "min-h-[780px]" : ""} w-11/12 sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-2/5 2xl:w-1/3 flex justify-center items-center`}>
         <div
           className={`container bg-[#222323] ${
-            signUp ? "h-5/6 " : "h-1/2"
+            signUp ? "h-5/6 min-h-[750px]" : "h-1/2 min-h-[400px]"
           }  pb-4 rounded-xl lg:h-full lg:rounded-l-lg lg:rounded-r-none flex flex-col justify-center`}
         >
           <p

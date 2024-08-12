@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { getLoadingFunc } from "./loadingContext.js";
-import animationData from "../animations/Animation - 1720812556915.json";
+import animationData from "../animations/Animation - 1720284169313.json";
 import Lottie from "react-lottie";
 import * as api from "../api/index";
 import { createChat, loadChat } from "../actions/chat";
@@ -124,27 +124,41 @@ function SearchUser() {
   }, []);
 
   useEffect(() => {
-    if (currentDeviceId && videoRef?.current) {
-      if (qrScannerRef.current) {
-        qrScannerRef.current.stop();
+    const startScanner = async () => {
+      if (currentDeviceId && videoRef?.current) {
+        try {
+          if (qrScannerRef.current) {
+            await qrScannerRef.current.stop();
+          }
+
+          // Delay to ensure the previous scanner has stopped completely
+          setLoadingOnSearchUser(true);
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          setLoadingOnSearchUser(false);
+
+          qrScannerRef.current = new QrScanner(
+            videoRef.current,
+            (result) => {
+              inviteLinkValidate(result.data);
+            },
+            { returnDetailedScanResult: true, preferredCamera: currentDeviceId }
+          );
+
+          await qrScannerRef.current.start();
+        } catch (err) {
+          console.error("Failed to start QR scanner:", err);
+        }
       }
-      qrScannerRef.current = new QrScanner(
-        videoRef.current,
-        (result) => {
-          () => inviteLinkValidate(result.data);
-        },
-        { returnDetailedScanResult: true, preferredCamera: currentDeviceId }
-      );
-      qrScannerRef.current
-        .start()
-        .catch((err) => console.error("Failed to start QR scanner:", err));
-    }
+    };
+
+    startScanner();
+
     return () => {
       if (qrScannerRef.current) {
         qrScannerRef.current.stop();
       }
     };
-  }, [currentDeviceId, videoRef.current]);
+  }, [currentDeviceId, showCamera]);
 
   const switchCamera = () => {
     // Find the index of the current device and switch to the next one
@@ -243,11 +257,7 @@ function SearchUser() {
         >
           {message}
         </div>
-        {loadingOnSearchUser ? (
-          <div className="my-4">
-            <Lottie options={defaultOptions} height={200} width={200} />
-          </div>
-        ) : inviteLink.length != 0 ? (
+        {inviteLink.length != 0 ? (
           <div className="flex flex-col justify-center items-center h-[calc(100%-5rem)] w-full">
             <QRCode
               size={256}
@@ -261,10 +271,19 @@ function SearchUser() {
           </div>
         ) : (
           <div className="h-[calc(100%-4rem)] flex justify-center items-center">
-            <div className="h-[calc(100%-3rem)] relative mb-2 flex flex-col justify-center aspect-square">
+            <div className="h-[calc(100%-3rem)] relative mb-2 flex flex-col justify-center items-center aspect-square">
               {showCamera ? (
                 <>
-                  <video ref={videoRef}></video>
+                  {loadingOnSearchUser && (
+                    <div className="my-4 absolute">
+                      <Lottie
+                        options={defaultOptions}
+                        height={100}
+                        width={100}
+                      />
+                    </div>
+                  )}
+                  <video ref={videoRef} style={{ width: '640px', height: '480px' }}></video>
                   <button
                     onClick={switchCamera}
                     className="bg-[#222] absolute bottom-0 w-full text-gray-600 rounded-b-md"
