@@ -24,8 +24,9 @@ export const googlesignin = (code, navigate) => async (dispatch) => {
       navigate("/home");
     }
   } catch (error) {
+    console.error(error);
     dispatch(
-      errorDispatcher(error.response?.status || 500, { message: error })
+      errorDispatcher(error.response?.status || 500, { message: error.message })
     );
   }
 };
