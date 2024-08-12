@@ -4,9 +4,7 @@ const API = axios.create({
   baseURL: `${import.meta.env.VITE_SERVER_BASE_URL}`,
 });
 
-API.interceptors.request.use((req) => {
-  return req;
-});
+
 
 if (window.location.pathname !== "/auth") {
   // we can't setup API before login, if we try to manually type any other path that would lead to auth page
@@ -38,6 +36,10 @@ if (window.location.pathname !== "/auth") {
         statusText: "User Data Not Found",
       });
     }
+  });
+}else{
+  API.interceptors.request.use((req) => {
+    return req;
   });
 }
 
