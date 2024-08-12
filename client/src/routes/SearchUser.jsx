@@ -105,27 +105,29 @@ function SearchUser() {
   useEffect(() => {
     // Get the list of video input devices
     navigator.mediaDevices
-  .getUserMedia({ video: true })
-  .then((stream) => {
-    // Permission granted, now enumerate devices
-    return navigator.mediaDevices.enumerateDevices();
-  })
-  .then((devices) => {
-    const videoDevices = devices.filter(
-      (device) => device.kind === "videoinput"
-    );
-    setDevices(videoDevices);
-    if (videoDevices.length > 0) {
-      setCurrentDeviceId(videoDevices[0].deviceId);
-    }
-  })
-  .catch((error) => {
-    console.error("Error accessing media devices.", error);
-  });
+      .getUserMedia({ video: true })
+      .then((stream) => {
+        return navigator.mediaDevices.enumerateDevices();
+      })
+      .then((devices) => {
+        const videoDevices = devices.filter(
+          (device) => device.kind === "videoinput"
+        );
+        setDevices(videoDevices);
+        if (videoDevices.length > 0) {
+          setCurrentDeviceId(videoDevices[0].deviceId);
+        }
+      })
+      .catch((error) => {
+        console.error("Error accessing media devices.", error);
+      });
   }, []);
 
   useEffect(() => {
     if (currentDeviceId && videoRef?.current) {
+      if (qrScannerRef.current) {
+        qrScannerRef.current.stop();
+      }
       qrScannerRef.current = new QrScanner(
         videoRef.current,
         (result) => {
@@ -142,10 +144,11 @@ function SearchUser() {
         qrScannerRef.current.stop();
       }
     };
-  }, [currentDeviceId, showCamera]);
+  }, [currentDeviceId, videoRef.current]);
 
   const switchCamera = () => {
     // Find the index of the current device and switch to the next one
+    console.log(devices);
     const currentIndex = devices.findIndex(
       (device) => device.deviceId === currentDeviceId
     );
