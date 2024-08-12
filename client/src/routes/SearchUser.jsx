@@ -140,6 +140,7 @@ function SearchUser() {
 
   const switchCamera = () => {
     // Find the index of the current device and switch to the next one
+    console.log(devices);
     const currentIndex = devices.findIndex(
       (device) => device.deviceId === currentDeviceId
     );

@@ -73,7 +73,7 @@ function Auth() {
           }  pb-4 rounded-xl lg:h-full lg:rounded-l-lg lg:rounded-r-none flex flex-col justify-center`}
         >
           <p
-            className={`font-sans font-bold text-4xl text-white text-center pt-8 pb-2 mb-8 ${animationClass}`}
+            className={`font-sans font-bold text-4xl text-white text-center pt-8 pb-2 mb-4 ${animationClass}`}
           >
             {signUp ? "Sign Up Form" : "Login Form"}
           </p>
