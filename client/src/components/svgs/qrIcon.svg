@@ -1,5 +1,5 @@
 <svg
-                className="lg:h-[28px] lg:w-[28px] xs:h-[24px] xs:w-[24px]"
+                className="h-[24px] w-[24px] lg:h-[28px] lg:w-[28px] xs:h-[24px] xs:w-[24px]"
                 viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"

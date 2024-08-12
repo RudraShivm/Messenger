@@ -6,9 +6,9 @@ const API = axios.create({
 const user = localStorage.getItem("profile");
 if (window.location.pathname !== "/auth") {
   // we can't setup API before login, if we try to manually type any other path that would lead to auth page
-  if (user) {
-    const userId = JSON.parse(user).user._id;
-    API.interceptors.request.use((req) => {
+  API.interceptors.request.use((req) => {
+    if (user) {
+      const userId = JSON.parse(user).user._id;
       if (
         req.url !== "/user/signin" &&
         req.url !== "/user/googleSignin" &&
@@ -18,6 +18,7 @@ if (window.location.pathname !== "/auth") {
         if (token) {
           req.headers.Authorization = `Bearer ${token}`;
           req.headers["userId"] = userId;
+          return req;
         } else {
           throw new Response("", {
             status: 404,
@@ -25,15 +26,14 @@ if (window.location.pathname !== "/auth") {
           });
         }
       }
-      return req;
-    });
-  } else {
-    window.location.href = "/auth";
-    throw new Response("", {
-      status: 404,
-      statusText: "User Data Not Found",
-    });
-  }
+    } else {
+      window.location.href = "/auth";
+      throw new Response("", {
+        status: 404,
+        statusText: "User Data Not Found",
+      });
+    }
+  });
 }
 
 const handleApiCall = async (apiCall) => {

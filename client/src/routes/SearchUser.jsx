@@ -8,9 +8,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import QRIcon from "../components/svgs/qrIcon.svg?react";
 import CrossIcon from "../components/svgs/crossIcon.svg?react";
+import RotateIcon from "../components/svgs/rotateIcon.svg?react";
 import ScanIcon from "../components/svgs/scanIcon.svg?react";
 import QRCode from "react-qr-code";
 import QrScanner from "qr-scanner";
+import { useMediaQuery } from "react-responsive";
 
 function SearchUser() {
   const setLoading = getLoadingFunc();
@@ -30,7 +32,6 @@ function SearchUser() {
   const videoRef = useRef(null);
   const qrScannerRef = useRef(null);
   const [inputValue, setInputValue] = useState("");
-
   const defaultOptions = {
     loop: true,
     autoplay: true,
@@ -135,15 +136,20 @@ function SearchUser() {
           setLoadingOnSearchUser(true);
           await new Promise((resolve) => setTimeout(resolve, 1000));
           setLoadingOnSearchUser(false);
-
+          let prevResult = "";
           qrScannerRef.current = new QrScanner(
             videoRef.current,
             async (result) => {
-              qrScannerRef.current.pause();
-              await inviteLinkValidate(
-                import.meta.env.VITE_CLIENT_BASE_URL + "/invite/" + result.data
-              );
-              qrScannerRef.current.resume();
+              if (prevResult != result.data) {
+                qrScannerRef.current.pause();
+                await inviteLinkValidate(
+                  import.meta.env.VITE_CLIENT_BASE_URL +
+                    "/invite/" +
+                    result.data
+                );
+                qrScannerRef.current.start();
+              }
+              prevResult = result.data;
             },
             {
               returnDetailedScanResult: true,
@@ -199,7 +205,9 @@ function SearchUser() {
   const handleQRClick = async () => {
     setMessage("");
     const { data } = await api.createInvite(currentUser._id);
-    setInviteLink(`${import.meta.env.VITE_CLIENT_BASE_URL}/invite/${data.newInvite._id}`);
+    setInviteLink(
+      `${import.meta.env.VITE_CLIENT_BASE_URL}/invite/${data.newInvite._id}`
+    );
   };
 
   const handleCopyClick = () => {
@@ -235,7 +243,7 @@ function SearchUser() {
       onClick={handleOutsideClick}
     >
       <div
-        className="container relative h-1/3 md:w-2/5 xs:w-4/5 bg-[#191919] rounded-xl border-[1px] border-slate-500"
+        className="container relative h-1/3 md:w-2/5 xs:w-3/5 bg-[#191919] rounded-xl border-[1px] border-slate-500"
         onClick={handleInsideClick}
       >
         <div className="h-[4rem] flex flex-row justify-center items-center">
@@ -245,13 +253,13 @@ function SearchUser() {
             onChange={inviteLink.length == 0 ? handleChange : () => {}}
             onClick={inviteLink.length == 0 ? () => {} : handleCopyClick}
             value={inviteLink.length == 0 ? inputValue : inviteLink}
-            className={`my-4 lg:mx-4 md:mx-2 lg:text-lg md:text-base text-white leading-1 w-9/12 py-1.5 px-2 rounded-lg  bg-[#3a3b3c] focus:outline-none ${
+            className={`my-4 lg:mx-4 md:mx-2 sm:text-md lg:text-lg md:text-base text-sm px-2 py-2 xs:py-2 lg:py-1.5 text-white leading-1 w-9/12  rounded-lg  bg-[#3a3b3c] focus:outline-none ${
               inviteLink.length != 0 && "hover:cursor-copy"
             }`}
           />
           {inviteLink.length == 0 && !showCamera ? (
             <button
-              className="rounded-xl lg:mx-1 md:mx-0 xs:mx-2 bg-[#3a3b3c] hover:bg-[#01211c] hover:scale-105 hover:cursor-pointer transition delay-75 p-1.5"
+              className="rounded-xl lg:mx-1 md:mx-0 xs:mx-2 mx-1 bg-[#3a3b3c] hover:bg-[#01211c] hover:scale-105 hover:cursor-pointer transition delay-75 p-1.5"
               onClick={handleQRClick}
               style={{
                 animation:
@@ -272,29 +280,25 @@ function SearchUser() {
         <div
           className={`text-[10px] text-center ${
             validity ? "text-green-400" : "text-red-600"
-          } font-light mx-8 h-4`}
+          } font-light mx-8 h-[1rem]`}
         >
           {message}
         </div>
         {inviteLink.length != 0 ? (
           <div className="flex flex-col justify-center items-center h-[calc(100%-5rem)] w-full">
             <QRCode
-              // size={256}
+              size={256}
               className="h-[calc(100%-1rem)] aspect-square p-2 bg-white"
               value={inviteLink.split("/").pop()}
               viewBox={`0 0 256 256`}
-              // fgColor="#D3D3D3"
-              // bgColor="#464747"
-              // fgColor="#c70d00"
-              // bgColor="#008700"
             />
             <div className="text-sm text-zinc-50 font-light italic my-2">
               share invite link or scan the QR code
             </div>
           </div>
         ) : (
-          <div className="h-[calc(100%-4rem)] flex justify-center items-center">
-            <div className="h-[calc(100%-3rem)] relative mb-2 flex flex-col justify-center items-center aspect-square overflow-hidden">
+          <div className="h-[calc(100%-5rem)] w-full flex justify-center items-center">
+            <div className="h-[calc(100%)] w-[70%] relative mb-2 flex flex-row  justify-center items-center aspect-square overflow-hidden">
               {showCamera ? (
                 <>
                   {loadingOnSearchUser && (
@@ -306,15 +310,8 @@ function SearchUser() {
                       />
                     </div>
                   )}
-                  <video
-                    ref={videoRef}
-                    style={{ width: "240px", height: "190px" }}
-                  ></video>
-                  <button
-                    onClick={switchCamera}
-                    className="bg-[#222] absolute bottom-0 w-full text-gray-600 rounded-b-md"
-                  >
-                    Switch Camera
+                  <button onClick={switchCamera}>
+                    <video ref={videoRef} className="w-[240px] h-full"></video>
                   </button>
                 </>
               ) : (
@@ -324,7 +321,7 @@ function SearchUser() {
                     onClick={handleCameraSwitch}
                   >
                     <ScanIcon />
-                    <p className="text-gray-600">Press to scan QR code</p>
+                    <p className="text-gray-600 sm:text-md lg:text-lg md:text-base text-sm text-center">Press to scan QR code</p>
                   </div>
                 </>
               )}
