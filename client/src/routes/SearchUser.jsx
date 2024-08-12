@@ -72,6 +72,7 @@ function SearchUser() {
             )
           );
         } else {
+          alert("got here to create chat");
           dispatch(
             createChat(currentUser._id, data.user, navigate, setLoading)
           );
@@ -85,14 +86,14 @@ function SearchUser() {
     }
   };
 
-  function inviteLinkValidate(link) {
+  async function  inviteLinkValidate(link) {
     const baseStr = `${window.location.origin}/invite/`;
     let valid = link.trim().startsWith(baseStr);
     if (valid) {
       setValidity(valid);
       setMessage("Looks good so far");
       let inviteIdString = link.trim().slice(baseStr.length);
-      inviteHelper(inviteIdString);
+      await inviteHelper(inviteIdString);
     }
   }
 
@@ -138,9 +139,9 @@ function SearchUser() {
 
           qrScannerRef.current = new QrScanner(
             videoRef.current,
-            (result) => {
+            (result) =>async () =>{
               alert(result.data);
-              inviteLinkValidate(import.meta.env.VITE_SERVER_BASE_URL+"/invite/"+result.data);
+              await inviteLinkValidate(import.meta.env.VITE_SERVER_BASE_URL+"/invite/"+result.data);
             },
             { returnDetailedScanResult: true, preferredCamera: currentDeviceId }
           );
@@ -175,7 +176,7 @@ function SearchUser() {
   const handleChange = async (e) => {
     const link = e.target.value;
     setInputValue(link);
-    inviteLinkValidate(link);
+    await inviteLinkValidate(link);
   };
 
   const handleQRClick = async () => {
