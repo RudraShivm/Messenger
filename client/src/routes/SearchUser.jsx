@@ -139,8 +139,7 @@ function SearchUser() {
           qrScannerRef.current = new QrScanner(
             videoRef.current,
             (result) => {
-              alert(result.data);
-              inviteLinkValidate(result.data);
+              inviteLinkValidate(import.meta.env.VITE_SERVER_BASE_URL+"/invite/"+result.data);
             },
             { returnDetailedScanResult: true, preferredCamera: currentDeviceId }
           );
@@ -263,8 +262,10 @@ function SearchUser() {
             <QRCode
               size={256}
               className="h-[calc(100%-1rem)]"
-              value={inviteLink}
+              value={inviteLink.split('/').pop()}
               viewBox={`0 0 256 256`}
+              fgColor='#D3D3D3'
+              bgColor='#1A1A1A'
             />
             <div className="text-sm text-zinc-50 font-light italic my-2">
               share invite link or scan the QR code
@@ -272,7 +273,7 @@ function SearchUser() {
           </div>
         ) : (
           <div className="h-[calc(100%-4rem)] flex justify-center items-center">
-            <div className="h-[calc(100%-3rem)] relative mb-2 flex flex-col justify-center items-center aspect-square">
+            <div className="h-[calc(100%-3rem)] relative mb-2 flex flex-col justify-center items-center aspect-square overflow-hidden">
               {showCamera ? (
                 <>
                   {loadingOnSearchUser && (
@@ -284,7 +285,7 @@ function SearchUser() {
                       />
                     </div>
                   )}
-                  <video ref={videoRef} style={{ width: '640px', height: '480px' }}></video>
+                  <video ref={videoRef} style={{ width: '240px', height: '190px' }}></video>
                   <button
                     onClick={switchCamera}
                     className="bg-[#222] absolute bottom-0 w-full text-gray-600 rounded-b-md"
