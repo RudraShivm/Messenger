@@ -25,7 +25,7 @@ export const googlesignin = (code, navigate) => async (dispatch) => {
     }
   } catch (error) {
     dispatch(
-      errorDispatcher(error.response?.status || 500, { message: error.message })
+      errorDispatcher(error.response?.status || 500, { message: error })
     );
   }
 };
