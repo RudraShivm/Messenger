@@ -32,7 +32,7 @@ if (window.location.pathname !== "/auth") {
         }
       }
     } else {
-      window.location.href = "/auth";
+      // window.location.href = "/auth";
       throw new Response("", {
         status: 404,
         statusText: "User Data Not Found",
