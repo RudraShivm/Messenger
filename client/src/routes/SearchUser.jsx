@@ -243,7 +243,7 @@ function SearchUser() {
       onClick={handleOutsideClick}
     >
       <div
-        className="container relative h-1/3 md:w-2/5 xs:w-3/5 bg-[#191919] rounded-xl border-[1px] border-slate-500"
+        className="container relative h-1/3 md:w-2/5 xs:w-4/5 bg-[#191919] rounded-xl border-[1px] border-slate-500"
         onClick={handleInsideClick}
       >
         <div className="h-[4rem] flex flex-row justify-center items-center">
