@@ -3,23 +3,28 @@ import Cookies from "js-cookie";
 const API = axios.create({
   baseURL: `${import.meta.env.VITE_SERVER_BASE_URL}`,
 });
-const user = localStorage.getItem("profile");
 if (window.location.pathname !== "/auth") {
   // we can't setup API before login, if we try to manually type any other path that would lead to auth page
+  console.log("a");
   API.interceptors.request.use((req) => {
+    const user = localStorage.getItem("profile");
     if (user) {
+      console.log("b");
       const userId = JSON.parse(user).user._id;
       if (
         req.url !== "/user/signin" &&
         req.url !== "/user/googleSignin" &&
         req.url !== "/user/signout"
       ) {
+        console.log("c");
         let token = Cookies.get("token");
         if (token) {
+          console.log("d");
           req.headers.Authorization = `Bearer ${token}`;
           req.headers["userId"] = userId;
           return req;
         } else {
+          console.log("e");
           throw new Response("", {
             status: 404,
             statusText: "Token Not Found",
@@ -27,6 +32,7 @@ if (window.location.pathname !== "/auth") {
         }
       }
     } else {
+      console.log("f");
       window.location.href = "/auth";
       throw new Response("", {
         status: 404,
