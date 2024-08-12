@@ -88,4 +88,8 @@ export const createChat = async (user1Id, user2Id) =>
 export const getInvite = async (inviteId) =>
   handleApiCall(() => API.get(`/invite/${inviteId}`));
 export const createInvite = async (userId) =>
-  handleApiCall(() => API.post("/invite/create", { userId }));
+  handleApiCall(() => {
+    console.log("handlecreateinvite")
+    API.post("/invite/create", { userId })
+  }
+  );
