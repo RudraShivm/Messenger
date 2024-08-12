@@ -20,7 +20,6 @@ const API = axios.create({
         if (token) {
           req.headers.Authorization = `Bearer ${token}`;
           req.headers["userId"] = userId;
-          return req;
         } else {
           throw new Response("", {
             status: 404,
@@ -29,12 +28,15 @@ const API = axios.create({
         }
       }
     } else {
-      // window.location.href = "/auth";
-      throw new Response("", {
-        status: 404,
-        statusText: "User Data Not Found",
-      });
+      if(window.location.pathname !== "/auth"){
+        window.location.href = "/auth";
+        throw new Response("", {
+          status: 404,
+          statusText: "User Data Not Found",
+        });
+      }
     }
+    return req;
   });
 
 const handleApiCall = async (apiCall) => {
