@@ -43,7 +43,10 @@ function Home() {
   const profile = useSelector((state) => state.auth?.authData);
   const user = profile.user;
   const chatHistory = useSelector((state) => state.auth?.authData.user.chats);
-  const friendsMap = user.friends;
+  const friendsMap = user.friends.reduce((acc, item) => {
+    acc.set(item._id, item);
+    return acc;
+  }, new Map()); 
   const homeSearchResult = useSelector((state) => state.auth?.homeSearchResult);
   const [chatsArr, setChatsArr] = useState(chatHistory);
   const currentUserId = useSelector((state) => state.auth?.authData?.user._id);

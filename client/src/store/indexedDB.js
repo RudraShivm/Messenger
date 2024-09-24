@@ -3,11 +3,6 @@ import Cookies from "js-cookie";
 
 export async function addProfile(user, token) {
   let db = new Localbase("db");
-  const friendsMap = user.friends.reduce((acc, item) => {
-    acc.set(item._id, item);
-    return acc;
-  }, new Map()); 
-  user.friends = friendsMap;
 
   // Cookies usage checkList : HttpOnly, SameSite: Strict or Lax , Short-lived Tokens, Validate Tokens
   Cookies.set("token", token, {

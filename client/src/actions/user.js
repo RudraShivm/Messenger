@@ -31,15 +31,11 @@ export const updateCreateGroupSearch = (payload) => async (dispatch, getState) =
 export const updateFriends = (prevFriendsMap, userArr) => async(dispatch, getState) => {
   try {
     let serialObj = {...getState().auth.authData};
-    let user = { 
-      ...serialObj.user, 
-      friends: new Map(serialObj.user.friends) 
-    };
     let friendsMap = prevFriendsMap;
     for(let usr of userArr){
       friendsMap.set(usr._id, usr);
     } 
-    user = {...serialObj.user ,friends : friendsMap};
+    let user = {...serialObj.user ,friends : [...friendsMap.values()]};
     serialObj = {...serialObj, user: user};
     dispatch({type : UPDATE_FRIENDS, payload : serialObj});
     await updateProfile(serialObj);

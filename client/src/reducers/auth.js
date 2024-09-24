@@ -24,7 +24,6 @@ const authReducer = (
   let chatObj;
   let homeSearchResult;
   let createGroupSearchResult;
-  let friendsMap;
   switch (action.type) {
     case AUTH:
       return { ...state, authData: { user: action?.payload.user } };

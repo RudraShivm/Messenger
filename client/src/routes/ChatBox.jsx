@@ -78,6 +78,11 @@ function ChatBox() {
   const chatArray = user?.chats;
   const chatObj = chatArray.filter((chatObj) => chatObj.chat._id == chatId)[0];
   const chat = chatObj?.chat || { _id: "", messages: [] };
+  const friendsObjArr = useSelector((state) => state.auth.authData.user.friends);
+  const friendsMap = friendsObjArr.reduce((acc, item) => {
+    acc.set(item._id, item);
+    return acc;
+  }, new Map()); 
   const connectedUserArr = chat.userArr;
   const chatType = chatObj?.chatType;
   const nickNameMap = chatObj?.chat.settings.nickNameMap;
@@ -475,6 +480,7 @@ function ChatBox() {
                       showMediaViewerFn={showMediaViewerFn}
                       setSelectedProfile={setSelectedProfile}
                       showTime={showTime}
+                      friendsMap={friendsMap}
                     />
                     <div className="flex flex-row justify-end gap-2 px-4">
                       {msgObj.seenBy.map((item) => {
@@ -513,6 +519,7 @@ function ChatBox() {
           chatType={chatType}
           chatCardInfo={chatCardInfo}
           nickNameMap={nickNameMap}
+          friendsMap={friendsMap}
         />
       )}
       {(showMorePanel || emojiPanel || showFilePanel) && (

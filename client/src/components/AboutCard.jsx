@@ -12,14 +12,15 @@ function AboutCard({
   chatType,
   chatCardInfo,
   nickNameMap,
+  friendsMap,
 }) {
   const [isNickNameEditing, setIsNickNameEditing] = useState(false);
-  const friendsMap = useSelector((state) => state.auth.authData.user.friends);
   const [secondPerson, setSecondPerson] = useState({});
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({});
   const [initNickName, setInitNickName] = useState("");
   useEffect(() => {
+    
     if (chatType === "individual" && friendsMap) {
       const user = connectedUserArr.filter((item) => item._id !== userId)[0];
       const friend = friendsMap.get(user);

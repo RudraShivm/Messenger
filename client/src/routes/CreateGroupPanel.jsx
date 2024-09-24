@@ -21,10 +21,10 @@ function CreateGroupPanel() {
     (state) => state.auth?.createGroupSearchResult
   );
   const user = useSelector((state) => state.auth?.authData?.user);
-  const friendsMap = useSelector(
+  const friendsObjArr = useSelector(
     (state) => state.auth?.authData?.user?.friends
   );
-  const [userArr, setUserArr] = useState([]);
+  const [userArr, setUserArr] = useState(createGroupSearchResult || friendsObjArr.filter(usr => usr._id !== user._id));
   const [selectedUserArr, setSelectedUserArr] = useState([
     {
       _id: user._id,
@@ -60,6 +60,13 @@ function CreateGroupPanel() {
   const [formData, setFormData] = useState({ groupName: getRandomGroupName() });
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  useEffect(()=>{
+    if(createGroupSearchResult){
+      setUserArr(createGroupSearchResult);
+    }
+  },[createGroupSearchResult])
+
 
   const handleConfirmClick = () => {
     let selectedUserIdArr = selectedUserArr.map((item) => item._id);

@@ -37,15 +37,18 @@ function ChatCard({
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
-  const friendsMap = useSelector(
+  const friendsObjArr = useSelector(
     (state) => state.auth?.authData?.user?.friends
   );
   let senderName = "";
   if (lastMessageInfo?.sender) {
     if (lastMessageInfo.sender === userId) {
       senderName = "You";
-    } else if (friendsMap && friendsMap[lastMessageInfo.sender]) {
-      senderName = friendsMap[lastMessageInfo.sender].name;
+    } else if (friendsObjArr) {
+      let sender = friendsObjArr.find(usr => usr._id == lastMessageInfo.sender);
+      if(sender){
+        senderName = sender.name;
+      }
     }
   }
   let string = `${senderName} sent an attachment`;

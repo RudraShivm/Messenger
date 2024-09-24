@@ -137,13 +137,14 @@ function MediaViewer({ messagesArr, selectedMsgId, setShowMediaViewer }) {
         <div>Error</div>
       ) : (
         <div className="w-full h-full flex justify-center items-center" on>
-          <div id="div-mediaViewer">
+          <div id="div-mediaViewer" className="relative w-full h-full">
             <FileViewer
               src={msgObj.file.fileURL}
               onError={(e) => {
                 setHasError(true);
               }}
               fileName={msgObj.file.name}
+              className="file-viewer"
             />
           </div>
           <div className="absolute top-0 right-0 flex flex-row bg-[#222323] rounded-bl-lg">

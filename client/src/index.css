@@ -112,3 +112,17 @@ table td{
   padding-top: 0.3rem;
   padding-bottom: 0.3rem;
 }
+
+#div-mediaViewer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.file-viewer {
+  height: 100%;
+  width: auto; /* This ensures the width follows the aspect ratio */
+  max-width: 100%; /* Prevents the width from exceeding the container */
+  object-fit: contain; /* Ensures the content fits within the container while maintaining aspect ratio */
+}

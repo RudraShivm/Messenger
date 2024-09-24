@@ -32,11 +32,9 @@ function Message({
   setActiveReactionBoxMsgId,
   showMediaViewerFn,
   setSelectedProfile,
-  showTime
+  showTime,
+  friendsMap
 }) {
-  const friendsMap = useSelector(
-    (state) => state.auth?.authData?.user?.friends
-  );
   const [isHovered, setIsHovered] = useState(false);
   const [fileURL, setFileURL] = useState(null);
   const fileURLRef = useRef(null);
