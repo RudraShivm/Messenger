@@ -34,18 +34,19 @@ const authReducer = (
 
     case LOADCHAT:
       serialObj = action?.payload.serialObj;
-      user = serialObj.user;
 
       /* localStorage will not store the files URL as the URL expired with window close.
       So here I am not touching previously loaded chat for preserving files URL in redux store, though it might be problem for the case when deleting chat messages is added */
 
-      let chatsArr_state = state.authData.user.chats;
+      // here I tried to only change the messages that have been added new, so that I can minimize the changes in state
+      // but ultimately I had to change the chatObj and return new state with newly made chatObj from that process (making the hard work useless)
+
+      /* let chatsArr_state = state.authData.user.chats;
       let chat_state = chatsArr_state.filter(
         (chatObj) =>
           chatObj.chat === action?.payload.chatId ||
           chatObj.chat?._id == action?.payload.chatId
       )[0].chat;
-
       if (typeof chat_state == "object") {
         const existingMessages = chat_state.messages || [];
         const newMessages = action?.payload.chat.messages || [];
@@ -86,15 +87,18 @@ const authReducer = (
           ...state,
           authData: { user: { ...state.authData.user, chats: newChatsArr } },
         };
-      }
+      } */
+      
+      return {
+        ...state,
+        authData: serialObj,
+      };
 
     case UPDATECHAT:
       serialObj = action?.payload;
       const updatedSerialObj = {
         ...serialObj,
       };
-      console.log(state.authData.user.chats);
-      console.log(updatedSerialObj.user.chats);
       return {
         ...state,
         authData: updatedSerialObj,
@@ -183,7 +187,6 @@ const authReducer = (
 
     case UPDATE_FRIENDS:
       serialObj = action?.payload;
-      console.log(serialObj.user.friends);
       return {
         ...state,
         authData: {
@@ -197,7 +200,6 @@ const authReducer = (
 
     case UPDATECHATCARDINFO:
       serialObj = action?.payload;
-      console.log(serialObj.user.chats);
       return {
         ...state,
         authData: serialObj,

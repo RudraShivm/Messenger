@@ -68,8 +68,6 @@ function Home() {
     homeSearchResult ? setChatsArr(homeSearchResult) : setChatsArr(chatHistory);
   }, [homeSearchResult, chatHistory]);
   useEffect(()=>{
-    console.log("chats changed");
-    console.log(chatHistory);
   },[chatHistory]);
   useEffect(() => {
     selectedRef.current = selected;
@@ -128,7 +126,6 @@ function Home() {
       let reactionObj = null;
       let seenByUsrInfo = null;
       Object.keys(change.updateDescription.updatedFields).forEach((key) => {
-        console.log(key);
         if (key.startsWith("messages")) {
           index1 = parseInt(key.split(".")[1], 10);
           if (!key.includes("seenBy") && !key.includes("reaction")) {

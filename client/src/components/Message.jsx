@@ -277,7 +277,7 @@ function Message({
           )}
         </div>
       </div>
-      {!isHovered && (
+      {isHovered && (
         <button
           className={`rounded-full h-fit bg-[#3a3b3c] hover:bg-[#58A89B] hover:scale-105 transition  p-2 mx-2 ${
             isHovered ? "pop-in" : ""

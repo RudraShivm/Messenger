@@ -15,7 +15,16 @@ import {
 } from "../store/indexedDB";
 
 export const loadChat =
-  (chatObjId, chatId, navigate, setLoading) => async (dispatch, getState) => {
+  (chatObjId, chatId, navigate, location, setLoading) =>
+  async (dispatch, getState) => {
+    // drafting msg for old chat before loading new chat
+    if (location.pathname.includes("/home/chat/")) {
+      let msgElem = document.getElementById("msg")
+      let msg = msgElem.value;
+      let oldChatId = location.pathname.split("/")[4];
+      dispatch(storeDraftMessages(oldChatId, msg));
+    }
+
     try {
       const { data } = await api.loadChat(chatId);
       if (data) {
@@ -41,12 +50,19 @@ export const loadChat =
             chatObj.chat === data.chatId || chatObj.chat?._id == data.chatId
         );
         if (chatIndex !== -1) {
-          user.chats[chatIndex] = { ...user.chats[chatIndex], chat: data.chat };
+          user.chats[chatIndex] = {
+            ...user.chats[chatIndex],
+            chat: {
+              draftMessage : user.chats[chatIndex].chat.draftMessage || "",
+              ...data.chat,
+            },
+          };
         }
 
         serialObj = { ...serialObj, user: user };
         dispatch({ type: LOADCHAT, payload: { ...data, serialObj } });
         await updateProfile(serialObj);
+
         navigate(`/home/chat/${chatObjId}/${chatId}`);
         setLoading(false);
       }
@@ -258,11 +274,8 @@ export const postMessage =
 export const updateChat =
   (chatId, messageObj) => async (dispatch, getState) => {
     try {
-      console.log("gsao");
       /* DONOT CHANGE STATE DIRECTLY.
       WASTED 1 DAY JUST BECAUSE I thought {...object} makes a deep copy of the object. I rather have to copy all properties that I am gonna change */
-      console.log(chatId);
-      console.log(messageObj);
       let state = getState();
       let serialObj = { ...state.auth.authData };
       let user = { ...serialObj.user, chats: [...serialObj.user.chats] };
@@ -440,14 +453,13 @@ export const addToSeenBy =
       but I am facing some issues with the duration of api call responses. Maybe I will change it back later */
       for (let i = updatedChatObj.chat.messages.length - 1; i >= 0; i--) {
         let message = updatedChatObj.chat.messages[i];
-        console.log(message.seenBy.find((item) => item._id == seenByUsrInfo._id));
         if (!message.seenBy.find((item) => item._id == seenByUsrInfo._id)) {
           updatedChatObj.chat.messages[i] = {
             ...message,
             seenBy: [...message.seenBy, seenByUsrInfo],
           };
         }
-        
+
         //  else {
         //   break;
         // }
@@ -504,6 +516,35 @@ export const updateNickName =
 
       dispatch({
         type: UPDATENICKNAME,
+        payload: serialObj,
+      });
+      await updateProfile(serialObj);
+    } catch (error) {
+      dispatch(
+        errorDispatcher(error.response?.status || 500, {
+          message: error.message,
+        })
+      );
+    }
+  };
+
+export const storeDraftMessages =
+  (chatId, message) => async (dispatch, getState) => {
+    try {
+      let serialObj = { ...getState().auth.authData };
+      let user = { ...serialObj.user, chats: [...serialObj.user.chats] };
+      let chatObj = user.chats.find((item) => item.chat._id == chatId);
+      let chatIndex = user.chats.findIndex((c) => c._id === chatObj._id);
+      let updatedChatObj = {
+        ...chatObj,
+        chat: { ...chatObj.chat, draftMessage: message },
+      };
+
+      user.chats[chatIndex] = updatedChatObj;
+      serialObj = { ...serialObj, user: user };
+
+      dispatch({
+        type: REACTMESSAGE,
         payload: serialObj,
       });
       await updateProfile(serialObj);

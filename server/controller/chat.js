@@ -41,6 +41,18 @@ export const postMessage = async (req, res) => {
           new: true,
         }
       );
+
+      await UserModel.findOneAndUpdate(
+        { _id: usrId },
+        {
+          $push: {
+            chats: {
+              $each: [],
+              $sort: { "lastMessageInfo.time": 1 },
+            },
+          },
+        }
+      );
     }
 
     // adding the token to the result for the requests that go through middleware for authentication for possible access_token changes
@@ -76,7 +88,6 @@ export const reactMessage = async (req, res) => {
       );
     } else {
       // Add a new reaction if it doesn't exist
-      console.log(chatId, messageId, userId, emoji);
       const chat = await ChatModel.findOneAndUpdate(
         {
           _id: chatId,
@@ -90,7 +101,6 @@ export const reactMessage = async (req, res) => {
           new: true, 
         }
       );
-      console.log(chat);
     }
     res
       .status(200)
@@ -236,16 +246,18 @@ export const addToGroup = async (req, res) => {
 //// have to improve time taken for updating seenBy array (16.6 s)
 export const addToSeenBy = async (req, res) => {
   const { userId, access_token } = req;
-  const { chatId, userInfo } = req.body;
+  const { chatId, notSeenMessagesIdArr, userInfo } = req.body;
 
   //version error happens when I try to change documents in a loop so changes in database is enqueued in its own thread
   // which can essentially result in asynchronous ordering of changes and disrupt the version ordering also
   try {
-    const chat = await ChatModel.findOneAndUpdate(
-      { _id: chatId },
-      { $addToSet: { "messages.$[].seenBy": userInfo } },
-      { new: true }
-    );
+    for (const messageId of notSeenMessagesIdArr) {
+      await ChatModel.updateOne(
+        { _id: chatId, "messages._id": messageId },
+        { $addToSet: { "messages.$.seenBy": userInfo } }
+      );
+    }
+    const chat = await ChatModel.findById(chatId);
 
     const userArr = chat.userArr;
 

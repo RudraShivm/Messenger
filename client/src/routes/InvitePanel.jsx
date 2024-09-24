@@ -151,8 +151,6 @@ function InvitePanel() {
             return chatObj.chatType == "group" && chatObj.chatCardInfo._id == data.chat;
           });
         }
-        console.log("data.user");
-        console.log(data.user);
         if (existingChatObj) {
           dispatch(
             loadChat(

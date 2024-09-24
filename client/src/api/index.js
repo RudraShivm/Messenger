@@ -48,7 +48,6 @@ API.interceptors.request.use(async (req) => {
 
 const handleApiCall = async (apiCall) => {
   const response = await apiCall();
-  console.log(response);
   if (response?.data) {
     const { data } = response;
     const { access_token } = data;
@@ -83,8 +82,8 @@ export const reactMessage = async (userId, chatId, messageId, emoji) =>
   handleApiCall(() =>
     API.patch("/chat/postEmoji", { userId, chatId, messageId, emoji })
   );
-export const addToSeenBy = async (chatId, userInfo) =>
-  handleApiCall(() => API.patch("/chat/addToSeenBy", { chatId, userInfo }));
+export const addToSeenBy = async (chatId, notSeenMessagesIdArr, userInfo) =>
+  handleApiCall(() => API.patch("/chat/addToSeenBy", { chatId, notSeenMessagesIdArr, userInfo }));
 export const updateNickName = async (chatId, nickNameObj) => 
   handleApiCall(() =>
     API.patch("/chat/updateNickName", { chatId, nickNameObj })

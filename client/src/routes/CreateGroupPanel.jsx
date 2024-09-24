@@ -61,39 +61,6 @@ function CreateGroupPanel() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const prevFriendsMapRef = useRef();
-  const prevCreateGroupSearchResultRef = useRef();
-  const prevSRef = useRef();
-
-  useEffect(() => {
-    // Log changes
-    if (prevFriendsMapRef.current !== friendsMap) {
-      console.log("friendsMap changed");
-    }
-    if (prevCreateGroupSearchResultRef.current !== createGroupSearchResult) {
-      console.log(
-        "createGroupSearchResult changed",
-        prevCreateGroupSearchResultRef.current,
-        createGroupSearchResult
-      );
-    }
-    if (prevSRef.current !== s) {
-      console.log("s changed");
-    }
-
-    // Update userArr based on the value of s
-    if (!s) {
-      setUserArr(Array.from(friendsMap.values()));
-    } else {
-      setUserArr(createGroupSearchResult);
-    }
-
-    // Update previous values
-    prevFriendsMapRef.current = friendsMap;
-    prevCreateGroupSearchResultRef.current = createGroupSearchResult;
-    prevSRef.current = s;
-  }, [createGroupSearchResult, friendsMap, s]);
-
   const handleConfirmClick = () => {
     let selectedUserIdArr = selectedUserArr.map((item) => item._id);
 

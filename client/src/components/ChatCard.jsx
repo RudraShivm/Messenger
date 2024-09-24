@@ -73,7 +73,7 @@ function ChatCard({
             ? lastMessageInfo.message
             : string,
         onClick: () => {
-          dispatch(loadChat(chatObjId, chatId, navigate, setLoading));
+          dispatch(loadChat(chatObjId, chatId, navigate, location, setLoading));
         },
         native: true,
         icon: "/client/public/images/messenger.svg",
@@ -84,13 +84,12 @@ function ChatCard({
   useEffect(()=>{
     //update selected chatId in case of reload
     if(location.pathname.split('/')[4] && chatId == location.pathname.split('/')[4]){
-      console.log("s");
       setSelected({ userId, chatId : location.pathname.split('/')[4] });
     }
   },[]);
   const handleClick = () => {
     setLoading(true);
-    dispatch(loadChat(chatObjId, chatId, navigate, setLoading));
+    dispatch(loadChat(chatObjId, chatId, navigate, location, setLoading));
     setSelected({ userId, chatId });
     setLoading(false);
   };

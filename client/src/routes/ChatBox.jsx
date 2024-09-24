@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import Message from "../components/Message";
-import { Outlet, useParams } from "react-router-dom";
+import { Outlet, useLocation, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { addToSeenBy, postMessage } from "../actions/chat";
+import { addToSeenBy, postMessage, storeDraftMessages } from "../actions/chat";
 import EmojiPicker from "emoji-picker-react";
 import { useMediaQuery } from "react-responsive";
 import NoMessageIcon from "../components/svgs/noMessageIcon.svg?react";
@@ -20,19 +20,37 @@ import BottomBar from "../components/BottomBar";
 import AboutCard from "../components/AboutCard";
 import DetailsPanel from "./DetailsPanel";
 import { errorDispatcher } from "../functions/errorDispatcher";
-import * as api from '../api/index';
+import * as api from "../api/index";
 
 function formatDate(currMsgDate) {
   const currentDate = new Date();
   currMsgDate = new Date(currMsgDate);
-  const daysDifference = Math.floor((currentDate - currMsgDate) / (1000 * 60 * 60 * 24));
+  const daysDifference = Math.floor(
+    (currentDate - currMsgDate) / (1000 * 60 * 60 * 24)
+  );
   if (daysDifference === 0) {
-    return currMsgDate.toLocaleTimeString([], { hour12: true, hour: 'numeric', minute: 'numeric' });
+    return currMsgDate.toLocaleTimeString([], {
+      hour12: true,
+      hour: "numeric",
+      minute: "numeric",
+    });
   } else if (daysDifference < 7) {
-    const dayOfWeek = currMsgDate.toLocaleString([], { weekday: 'short' });
-    return `${dayOfWeek} ${currMsgDate.toLocaleTimeString([], { hour12: true, hour: 'numeric', minute: 'numeric' })}`;
+    const dayOfWeek = currMsgDate.toLocaleString([], { weekday: "short" });
+    return `${dayOfWeek} ${currMsgDate.toLocaleTimeString([], {
+      hour12: true,
+      hour: "numeric",
+      minute: "numeric",
+    })}`;
   } else {
-    return currMsgDate.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + currMsgDate.toLocaleTimeString([], { hour12: true, hour: 'numeric', minute: 'numeric' });
+    return (
+      currMsgDate.toLocaleDateString([], { month: "short", day: "numeric" }) +
+      " " +
+      currMsgDate.toLocaleTimeString([], {
+        hour12: true,
+        hour: "numeric",
+        minute: "numeric",
+      })
+    );
   }
 }
 
@@ -52,7 +70,6 @@ function ChatBox() {
   const dispatch = useDispatch();
   const setSelected = getSelectedFunc();
   const { chatObjId, chatId } = useParams();
-  const [msg, setMsg] = useState("");
   const [activeReactionBoxMsgId, setActiveReactionBoxMsgId] = useState(null);
   const [showMorePanel, setShowMorePanel] = useState(false);
   const [morePanelAnimationClass, setMorePanelAnimationClass] = useState("");
@@ -65,6 +82,7 @@ function ChatBox() {
   const chatType = chatObj?.chatType;
   const nickNameMap = chatObj?.chat.settings.nickNameMap;
   const chatCardInfo = chatObj?.chatCardInfo;
+  const [msg, setMsg] = useState("");
   const [emojiPanel, setEmojiPanel] = useState(false);
   const [filesArr, setFilesArr] = useState([]);
   const [showMediaViewer, setShowMediaViewer] = useState(false);
@@ -72,16 +90,16 @@ function ChatBox() {
   const [showFilePanel, setShowFilePanel] = useState(false);
   const [selectedMsgId, setSelectedMsgId] = useState(null);
   const [selectedProfile, setSelectedProfile] = useState(() => {
-    const savedProfile = localStorage.getItem('selectedProfile');
+    const savedProfile = localStorage.getItem("selectedProfile");
     return savedProfile ? JSON.parse(savedProfile) : null;
   });
   const [showAboutCard, setShowAboutCard] = useState(false);
   const [showSearchBar, setShowSearchBar] = useState(true);
+  const [notSeenMessagesIdArr, setNotSeenMessagesIdArr] = useState([]);
   const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
   const SUPABASE_PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID;
   const STORAGE_BUCKET = import.meta.env.VITE_STORAGE_BUCKET;
   const BEARER_TOKEN = import.meta.env.VITE_BEARER_TOKEN;
-
   const folder = "messages";
   const supabaseStorageURL = `https://${SUPABASE_PROJECT_ID}.supabase.co/storage/v1/upload/resumable`;
 
@@ -93,17 +111,27 @@ function ChatBox() {
     seenByArr,
     userId,
     array,
-    index
+    index,
+    tempNotSeenMessagesIdArr
   ) => {
     if (index === chat?.messages.length - 1) {
-      return !seenByArr.find((item) => item._id === userId);
+      let result = seenByArr.findIndex((item) => item._id === userId);
+      if (result === -1) {
+        tempNotSeenMessagesIdArr.push(array[index]._id);
+      }
+      return result === -1;
     } else {
-      return (
-        !seenByArr.find((item) => item._id === userId) &&
-        array[index + 1].seenBy.find((item) => item._id === userId)
+      let result1 = seenByArr.findIndex((item) => item._id === userId);
+      let result2 = array[index + 1].seenBy.findIndex(
+        (item) => item._id === userId
       );
+      if (result1 === -1) {
+        tempNotSeenMessagesIdArr.push(array[index]._id);
+      }
+      return result1 === -1 && result2 !== -1;
     }
   };
+
   const IsLastSeenMessageFn = (seenByArr, userId, array, index) => {
     if (index === 0) {
       return seenByArr.find((item) => item._id === userId);
@@ -115,9 +143,11 @@ function ChatBox() {
     }
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     setShowAboutCard(false);
-  },[chatId])
+    setMsg(chat.draftMessage)
+  }, [chatId, chat.draftMessage]);
+
 
   useEffect(() => {
     return () => {
@@ -149,9 +179,26 @@ function ChatBox() {
 
   useEffect(() => {
     if (selectedProfile) {
-      localStorage.setItem('selectedProfile', JSON.stringify(selectedProfile));
+      localStorage.setItem("selectedProfile", JSON.stringify(selectedProfile));
     }
   }, [selectedProfile]);
+
+  useEffect(() => {
+    let tempNotSeenMessagesIdArr = [];
+    chat?.messages
+      .slice()
+      .reverse()
+      .forEach((msgObj, index, array) => {
+        hasSeenConflictWithPrevMessageFn(
+          msgObj.seenBy,
+          user._id,
+          array,
+          index,
+          tempNotSeenMessagesIdArr
+        );
+      });
+    setNotSeenMessagesIdArr(tempNotSeenMessagesIdArr);
+  }, [chat, user._id]);
 
   // callback ref
   const ref = React.useCallback((node) => {
@@ -159,17 +206,21 @@ function ChatBox() {
       node?.scrollIntoView({ behavior: "smooth" });
       setTimeout(async () => {
         if (node) {
-          try{
+          try {
             const seenByUsrInfo = {
               _id: user._id,
               name: user.name,
               profile_picture: user.profile_picture,
             };
-            const response = await api.addToSeenBy(chat._id, seenByUsrInfo);
-            if(response.status == 200){
+            const response = await api.addToSeenBy(
+              chat._id,
+              notSeenMessagesIdArr,
+              seenByUsrInfo
+            );
+            if (response.status == 200) {
               dispatch(addToSeenBy(chatId, seenByUsrInfo));
             }
-          }catch(error){
+          } catch (error) {
             dispatch(
               errorDispatcher(error.response?.status || 500, {
                 message: error.message,
@@ -355,12 +406,8 @@ function ChatBox() {
         setShowAboutCard={setShowAboutCard}
         setAboutPanelAnimationClass={setAboutPanelAnimationClass}
       />
-      { showSearchBar && (
-        <div>
-          
-        </div>
-      )}
-      <Outlet context={{ data: selectedProfile }}/>
+      {showSearchBar && <div></div>}
+      <Outlet context={{ data: selectedProfile }} />
       {showMediaViewer && (
         <div className="absolute z-20 md:h-[calc(100%-10.75rem)] xs:h-[calc(100%-9.75rem)] lg:w-[calc(66.67%-0.75rem)] md:w-[calc(60%-0.75rem)] xs:w-[calc(100%-0.75rem)] md:right-[0.75rem] xs:right-[0.375rem] bottom-[4.75rem] backdrop-blur-2xl">
           <MediaViewer
@@ -389,15 +436,18 @@ function ChatBox() {
               .slice()
               .reverse()
               .map((msgObj, index, array) => {
-                const showUnreadIndicator = hasSeenConflictWithPrevMessageFn(
-                  msgObj.seenBy,
-                  user._id,
-                  array,
-                  index
+                const showUnreadIndicator = notSeenMessagesIdArr.includes(
+                  msgObj._id
                 );
-                const prevMsgObj = index !== chat.messages.length-1 ? array[index+1] : null;
-                const nextMsgObj = index !== 0 ? array[index-1] : null;
-                const showTime = prevMsgObj && Math.floor((new Date(msgObj.time)- new Date(prevMsgObj.time))/(60*60*1000)) > 1;
+                const prevMsgObj =
+                  index !== chat.messages.length - 1 ? array[index + 1] : null;
+                const nextMsgObj = index !== 0 ? array[index - 1] : null;
+                const showTime =
+                  prevMsgObj &&
+                  Math.floor(
+                    (new Date(msgObj.time) - new Date(prevMsgObj.time)) /
+                      (60 * 60 * 1000)
+                  ) > 1;
                 return (
                   <div key={msgObj._id}>
                     {showUnreadIndicator && (
@@ -405,11 +455,10 @@ function ChatBox() {
                         <UnreadIndicator />
                       </div>
                     )}
-                    {
-                      showTime && (
-                        <div className="w-full flex justify-center text-[#999c99]">
-                          {formatDate(msgObj.time)}
-                        </div>
+                    {showTime && (
+                      <div className="w-full flex justify-center text-[#999c99]">
+                        {formatDate(msgObj.time)}
+                      </div>
                     )}
                     <Message
                       key={msgObj._id}
@@ -424,7 +473,7 @@ function ChatBox() {
                       isActiveReactionBox={activeReactionBoxMsgId == msgObj._id}
                       setActiveReactionBoxMsgId={setActiveReactionBoxMsgId}
                       showMediaViewerFn={showMediaViewerFn}
-                      setSelectedProfile = {setSelectedProfile}
+                      setSelectedProfile={setSelectedProfile}
                       showTime={showTime}
                     />
                     <div className="flex flex-row justify-end gap-2 px-4">
@@ -461,8 +510,8 @@ function ChatBox() {
           chatId={chatId}
           connectedUserArr={connectedUserArr}
           aboutPanelAnimationClass={aboutPanelAnimationClass}
-          chatType ={chatType}
-          chatCardInfo = {chatCardInfo}
+          chatType={chatType}
+          chatCardInfo={chatCardInfo}
           nickNameMap={nickNameMap}
         />
       )}

@@ -36,7 +36,12 @@ const errorReducer = (state = { errObj: null }, action) => {
     case SHOW_ERROR_404:
       return {
         ...state,
-        errObj: { message: action.payload.message, show: true },
+        errObj: {
+          message: action.payload.message,
+          show: true,
+          buttonText: "Log Out",
+          buttonFunc: signOut,
+        },
       };
 
     case SHOW_ERROR_500:
@@ -51,7 +56,15 @@ const errorReducer = (state = { errObj: null }, action) => {
       };
 
     case WITHDRAW_ERROR:
-      return { ...state, errObj: { ...state.errObj, show: false } };
+      return {
+        ...state,
+        errObj: {
+          ...state.errObj,
+          show: false,
+          buttonText: "Log Out",
+          buttonFunc: signOut,
+        },
+      };
     default:
       return state;
   }

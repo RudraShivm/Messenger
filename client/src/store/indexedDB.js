@@ -40,8 +40,6 @@ export async function getProfile() {
         serialObj = doc.profile;
       }
     });
-    console.log("after getProfile" );
-    console.log(serialObj);
   return serialObj;
 }
 

@@ -9,7 +9,6 @@ async function loadFromLocalStorage() {
     let db = new Localbase("db");
     const doc = await db.collection("messenger").doc({ id: 1 }).get();
     if (doc) {
-      console.log("why here?")
       const state = doc.profile;
       return {
         auth: { authData: state },
