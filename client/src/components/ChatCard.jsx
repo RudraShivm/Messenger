@@ -1,11 +1,13 @@
 /* eslint-disable react/prop-types */
 import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { loadChat } from "../actions/chat";
 import moment from "moment";
 import { useMediaQuery } from "react-responsive";
 import shortenName from "../functions/shortenName";
+import addNotification from "react-push-notification";
+import { errorDispatcher } from "../functions/errorDispatcher";
 function formatAMPM(date, format) {
   var hours = date.getHours();
   var minutes = date.getMinutes();
@@ -23,8 +25,8 @@ function formatAMPM(date, format) {
 
 function ChatCard({
   userId,
-  userName,
-  secondPerson,
+  chatType,
+  chatCardInfo,
   chatObjId,
   chatId,
   lastMessageInfo,
@@ -34,9 +36,22 @@ function ChatCard({
 }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  let string = `${
-    lastMessageInfo.sender == userId ? userName : secondPerson.name
-  } sent an attachment`;
+  const location = useLocation();
+  const friendsMap = useSelector(
+    (state) => state.auth?.authData?.user?.friends
+  );
+  let senderName = "";
+  if (lastMessageInfo?.sender) {
+    if (lastMessageInfo.sender === userId) {
+      senderName = "You";
+    } else if (friendsMap && friendsMap[lastMessageInfo.sender]) {
+      senderName = friendsMap[lastMessageInfo.sender].name;
+    }
+  }
+  let string = `${senderName} sent an attachment`;
+  let chatCardLabel = chatCardInfo.name;
+  let profile_picture = chatCardInfo.profile_picture;
+
   let format = "large";
   const isSmallerScreen = useMediaQuery({
     query: "(min-width: 0px) and (max-width: 1536px)",
@@ -47,25 +62,48 @@ function ChatCard({
   if (isSmallerScreen) {
     format = "short";
   }
+  const seen = lastMessageInfo.seenBy.find((item) => item._id == userId);
+  useEffect(() => {
+    if (!seen) {
+      addNotification({
+        title: "Messenger",
+        subtitle: "new message",
+        message:
+          lastMessageInfo.messageType == "text"
+            ? lastMessageInfo.message
+            : string,
+        onClick: () => {
+          dispatch(loadChat(chatObjId, chatId, navigate, setLoading));
+        },
+        native: true,
+        icon: "/client/public/images/messenger.svg",
+      });
+    }
+  }, [lastMessageInfo]);
+
+  useEffect(()=>{
+    //update selected chatId in case of reload
+    if(location.pathname.split('/')[4] && chatId == location.pathname.split('/')[4]){
+      console.log("s");
+      setSelected({ userId, chatId : location.pathname.split('/')[4] });
+    }
+  },[]);
   const handleClick = () => {
     setLoading(true);
     dispatch(loadChat(chatObjId, chatId, navigate, setLoading));
     setSelected({ userId, chatId });
     setLoading(false);
   };
-  const seen = lastMessageInfo.seenBy.find((item) => item == userId);
   return (
     <div
       className={`h-16 my-4 mx-4 relative flex flex-row items-center ${
-        selected.userId === secondPerson._id && !isSmallScreen
-          ? "bg-[#3a3b3c]"
-          : ""
+        selected.chatId === chatId && !isSmallScreen ? "bg-[#3a3b3c]" : ""
       } hover:bg-[#3a3b3c] transition ease-in-out rounded-lg 2xl:py-0 lg:py-10 cursor-pointer`}
       onClick={handleClick}
     >
       <div className="lg:h-[2.5rem] lg:w-[2.5rem] md:h-[2rem] md:w-[2rem] xs:h-[2.8rem] xs:w-[2.8rem] ml-4 flex justify-center items-center">
         <img
-          src={secondPerson?.profile_picture}
+          src={profile_picture}
           alt="user"
           className="rounded-[50%] h-full w-auto min-w-[100%] object-cover"
           referrerPolicy="no-referrer"
@@ -73,7 +111,7 @@ function ChatCard({
       </div>
       <div className="flex flex-col items-start pl-4 ">
         <button className="2xl:text-xl xl:text-lg lg:text-base md:text-sm xs:text-lg text-zinc-50 font-semibold">
-          {`${secondPerson?.name}${!seen ? "🔸" : ""}`}
+          {`${chatCardLabel}${!seen ? "🔸" : ""}`}
         </button>
         <div
           className={`text-sm  ${

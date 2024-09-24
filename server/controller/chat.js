@@ -4,8 +4,7 @@ import UserModel from "../models/user.js";
 export const loadChat = async (req, res) => {
   const { chatId } = req.params;
   try {
-    const chat = await ChatModel.findOne({ _id: chatId }).exec();
-
+    const chat = await ChatModel.findOne({ _id: chatId });
     res.status(200).json({ chat, chatId });
   } catch (error) {
     console.error(error);
@@ -13,19 +12,12 @@ export const loadChat = async (req, res) => {
   }
 };
 
-
 export const postMessage = async (req, res) => {
   const { userId, access_token } = req;
   const { chatId } = req.params;
-  const { user1Id, user2Id, messageObj } = req.body;
+  const { userArr, messageObj } = req.body;
   // userIdArr ,msgObj instead of message
   try {
-    if (user1Id == userId && user2Id == userId) {
-      return res.status(403).json({
-        message: "You do not have permission to update this profile.",
-      });
-    }
-
     await ChatModel.findOneAndUpdate(
       { _id: chatId },
       {
@@ -36,31 +28,20 @@ export const postMessage = async (req, res) => {
       }
     );
 
-    await UserModel.findOneAndUpdate(
-      { _id: user1Id, "chats.user": user2Id },
-      {
-        $set: {
-          "chats.$[elem].lastMessageInfo": messageObj,
+    for (let usrId of userArr) {
+      await UserModel.findOneAndUpdate(
+        { _id: usrId },
+        {
+          $set: {
+            "chats.$[elem].lastMessageInfo": messageObj,
+          },
         },
-      },
-      {
-        arrayFilters: [{ "elem.user": user2Id }],
-        new: true,
-      }
-    );
-
-    await UserModel.findOneAndUpdate(
-      { _id: user2Id, "chats.user": user1Id },
-      {
-        $set: {
-          "chats.$[elem].lastMessageInfo": messageObj,
-        },
-      },
-      {
-        arrayFilters: [{ "elem.user": user1Id }],
-        new: true,
-      }
-    );
+        {
+          arrayFilters: [{ "elem.chat": chatId }],
+          new: true,
+        }
+      );
+    }
 
     // adding the token to the result for the requests that go through middleware for authentication for possible access_token changes
     res
@@ -77,17 +58,40 @@ export const reactMessage = async (req, res) => {
   const { userId, chatId, messageId, emoji } = req.body;
   try {
     const chat = await ChatModel.findOne({ _id: chatId });
-    const messageObj = chat.messages.find((msgObj) => msgObj._id == messageId);
-    let reactionObj = messageObj.reaction.find(
-      (reactionObj) => reactionObj.user == userId
-    );
-    //for now not updating lastMessage reaction. doesn't matter as I am not using it
-    if (!reactionObj) {
-      messageObj.reaction.push({ user: userId, emoji });
+    const reactionObj = chat?.messages?.find((msg) => msg._id == messageId)?.reaction?.find((reaction) => reaction.user == userId);
+    if (reactionObj) {
+      await ChatModel.findOneAndUpdate(
+        {
+          _id: chatId,
+          "messages._id": messageId,
+          "messages.reaction.user": userId,
+        },
+        {
+          $set: { "messages.$[msg].reaction.$[react].emoji": emoji },
+        },
+        {
+          arrayFilters: [{ "msg._id": messageId }, { "react.user": userId }],
+          upsert: true,
+        }
+      );
     } else {
-      reactionObj.emoji = reactionObj.emoji == emoji ? null : emoji;
+      // Add a new reaction if it doesn't exist
+      console.log(chatId, messageId, userId, emoji);
+      const chat = await ChatModel.findOneAndUpdate(
+        {
+          _id: chatId,
+          "messages._id": messageId,
+        },
+        {
+          $push: { "messages.$[msg].reaction": { user: userId, emoji } },
+        },
+        {
+          arrayFilters: [{ "msg._id": messageId }],
+          new: true, 
+        }
+      );
+      console.log(chat);
     }
-    await chat.save();
     res
       .status(200)
       .json({ message: "Reaction updated successfully", token: access_token });
@@ -99,45 +103,160 @@ export const reactMessage = async (req, res) => {
 
 export const createChat = async (req, res) => {
   const { userId, access_token } = req;
-  //user1 is currentUser and user2 is secondUser
-  // userIdArr
-  const { user1Id, user2Id } = req.body;
-  try {
-    if (user1Id == userId && user2Id == userId) {
-      return res.status(403).json({
-        message: "You do not have permission to update this profile.",
-      });
-    }
-    const newChat = await ChatModel.create({ messages: [] });
-    const user1 = await UserModel.findOneAndUpdate(
-      { _id: user1Id },
-      {
-        $push: { chats: { user: user2Id, chat: newChat._id } },
-      },
-      {
-        new: true,
-      }
-    );
 
-    const user2 = await UserModel.findOneAndUpdate(
-      { _id: user2Id },
-      {
-        $push: { chats: { user: user1Id, chat: newChat._id } },
-      },
-      {
-        new: true,
+  const { userArr, chatType, chatCardInfo } = req.body;
+  try {
+    let curr_user = {};
+    let newChat;
+    // for individual chat I am passing chatCardInfo as null, because the chatCardInfo for individual chat depends on each user
+    let updatedChatCardInfo = chatCardInfo;
+    if (chatType == "individual") {
+      newChat = await ChatModel.create({
+        chatType,
+        userArr,
+        messages: [],
+      });
+    } else if (chatType == "group") {
+      const currDate = Date.now();
+      const joiningDateMap = new Map();
+      for (let usrId of userArr) {
+        joiningDateMap.set(usrId, currDate);
       }
-    );
+      newChat = await ChatModel.create({
+        chatType,
+        userArr,
+        messages: [],
+        settings: { groupInfo: { ...chatCardInfo, joiningDateMap } },
+      });
+      updatedChatCardInfo = { ...chatCardInfo, _id: newChat._id };
+    }
+    let user;
+    let updatedUserArr = [];
+    for (let usrId of userArr) {
+      user = await UserModel.findOne({ _id: usrId }).select(
+        "name about profile_picture"
+      );
+      updatedUserArr = [...updatedUserArr, user];
+    }
+    for (let usrId of userArr) {
+      user = await UserModel.findOneAndUpdate(
+        { _id: usrId },
+        {
+          $push: {
+            chats: {
+              chat: newChat._id,
+              chatType,
+              chatCardInfo:
+                updatedChatCardInfo ||
+                updatedUserArr.find((i) => i._id !== usrId),
+              // updatedChatCardInfo now has userID or chatID depending on chatType which helps during processing invites
+            },
+          },
+          $addToSet: {
+            friends: {
+              $each: updatedUserArr,
+            },
+          },
+        },
+        {
+          new: true,
+        }
+      );
+      if (usrId == userId) {
+        curr_user = user;
+      }
+    }
+    let chatsArrObj = curr_user.chats[curr_user.chats.length - 1];
+    chatsArrObj.chat = newChat;
 
     res.status(200).json({
-      _id: user1.chats[user1.chats.length - 1]._id,
-      user: {
-        _id: user2._id,
-        name: user2.name,
-        profile_picture: user2.profile_picture,
+      chatsArrObj,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+export const addToGroup = async (req, res) => {
+  const { userId, access_token } = req;
+  const { chatId } = req.body;
+
+  try {
+    const existingChat = await ChatModel.findOneAndUpdate(
+      { _id: chatId },
+      {
+        $addToSet: {
+          "settings.userArr": userId,
+        },
+      }
+    );
+    let updatedUserArr = [];
+    for (let usrId of existingChat.userArr) {
+      let user;
+      user = await UserModel.findOne({ _id: usrId }).select(
+        "name about profile_picture"
+      );
+      updatedUserArr = [...updatedUserArr, user];
+    }
+    const user = await UserModel.findOneAndUpdate(
+      { _id: userId },
+      {
+        $push: {
+          chats: {
+            chat: existingChat._id,
+            chatType: existingChat.chatType,
+            chatCardInfo: {
+              ...existingChat.settings.groupInfo,
+              _id: existingChat._id,
+            },
+            // updatedChatCardInfo now has userID or chatID depending on chatType which helps during processing invites
+          },
+        },
+        $addToSet: {
+          friends: { $each: updatedUserArr },
+        },
       },
-      chat: newChat,
-      lastMessageInfo: user1.chats[user1.chats.length - 1].lastMessageInfo,
+      {
+        new: true,
+      }
+    );
+    let chatsArrObj = user.chats[user.chats.length - 1];
+    chatsArrObj.chat = newChat;
+
+    res.status(200).json({
+      chatsArrObj,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+//// have to improve time taken for updating seenBy array (16.6 s)
+export const addToSeenBy = async (req, res) => {
+  const { userId, access_token } = req;
+  const { chatId, userInfo } = req.body;
+
+  //version error happens when I try to change documents in a loop so changes in database is enqueued in its own thread
+  // which can essentially result in asynchronous ordering of changes and disrupt the version ordering also
+  try {
+    const chat = await ChatModel.findOneAndUpdate(
+      { _id: chatId },
+      { $addToSet: { "messages.$[].seenBy": userInfo } },
+      { new: true }
+    );
+
+    const userArr = chat.userArr;
+
+    for (let userId of userArr) {
+      await UserModel.updateOne(
+        { _id: userId, "chats.chat": chatId },
+        { $addToSet: { "chats.$.lastMessageInfo.seenBy": userInfo } }
+      );
+    }
+    res.status(200).json({
+      message: "Added user to seenBy array successfully",
       token: access_token,
     });
   } catch (error) {
@@ -146,46 +265,62 @@ export const createChat = async (req, res) => {
   }
 };
 
-export const addToSeenBy = async (req, res) => {
+export const updateNickName = async (req, res) => {
   const { userId, access_token } = req;
-  const { chatId } = req.body;
-
-  //version error happens when I try to change documents in a loop so changes in database is enqueued in its own thread
-  // which can essentially result in asynchronous ordering of changes and disrupt the version ordering also
+  const { chatId, nickNameObj } = req.body;
   try {
-    const chat = await ChatModel.findOne({ _id: chatId });
-    for (let i = chat.messages.length - 1; i >= 0; i--) {
-      if (!chat.messages[i].seenBy.find((item) => item == userId)) {
-        chat.messages[i].seenBy.push(userId);
-        await chat.save();
-        if (i == chat.messages.length - 1) {
-          // last Message update
-          const users = await UserModel.find({
-            chats: {
-              $elemMatch: {
-                chat: chatId,
-              },
-            },
-          });
-
-          for (let user of users) {
-            let chatObj = user.chats.find((chatObj) => chatObj.chat == chatId);
-            if (chatObj && !chatObj.lastMessageInfo.seenBy.includes(userId)) {
-              chatObj.lastMessageInfo.seenBy.push(userId);
-              await UserModel.findByIdAndUpdate(
-                user._id,
-                { chats: user.chats },
-                { new: true }
-              );
-            }
-          }
+    const updated_Chat = await ChatModel.findOneAndUpdate(
+      { _id: chatId },
+      {
+        $pull: {
+          "settings.nickNameMap": { _id: nickNameObj.userId },
+        },
+      },
+      { new: true }
+    );
+    console.log(updated_Chat);
+    if (updated_Chat.chatType == "individual") {
+      for (let usrId of updated_Chat.userArr) {
+        console.log(usrId, updated_Chat.userArr);
+        if (usrId !== nickNameObj.userId) {
+          console.log("goooooooooooooooooooootem");
+          await UserModel.findOneAndUpdate(
+            { _id: usrId, "chats.chat": chatId },
+            { $set: { "chats.$.chatCardInfo.name": nickNameObj.nickName } },
+            { new: true }
+          );
         }
-      } else {
-        break;
       }
+      await ChatModel.findOneAndUpdate(
+        { _id: chatId },
+        {
+          $addToSet: {
+            "settings.nickNameMap": {
+              _id: nickNameObj.userId,
+              nickName: nickNameObj.nickName,
+            },
+          },
+        },
+        { new: true }
+      );
+    } else {
+      await ChatModel.findOneAndUpdate(
+        { _id: chatId },
+        {
+          $addToSet: {
+            "settings.nickNameMap": {
+              _id: nickNameObj.userId,
+              nickName: nickNameObj.nickName,
+            },
+          },
+        },
+        { new: true }
+      );
     }
+
     res.status(200).json({
-      message: "Added user to seenBy array successfully",
+      chatId,
+      nickNameObj,
       token: access_token,
     });
   } catch (error) {

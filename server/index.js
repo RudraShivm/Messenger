@@ -9,6 +9,7 @@ import userRouter from "./routes/user.js";
 import chatRouter from "./routes/chat.js";
 import inviteRouter from "./routes/invite.js";
 import { auth } from "./middleware/auth.js";
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -24,6 +25,7 @@ app.use(cors());
 app.use("/user", userRouter);
 app.use("/chat", chatRouter);
 app.use("/invite", inviteRouter);
+
 const MONGOOSE_URL = process.env.MONGOOSE_URL;
 const PORT = process.env.PORT;
 
@@ -45,9 +47,6 @@ db.once("open", function () {
   const userChangeStream = db.collection("usermodels").watch();
   const chatChangeStream = db.collection("chatmodels").watch();
 
-  // the idea for queuing is genius. The problem was client side was getting the actions emitted
-  // but failed to be synchronous making it hard to updating app state in a multiple operation situation
-  // Thanks to copilot and whichever source copilot used . :)
   // Queue to ensure order of events
   const eventQueue = [];
   let processingQueue = false;
@@ -62,12 +61,15 @@ db.once("open", function () {
         case "user":
           switch (change.operationType) {
             case "insert":
+              console.log("Emitting userCreated");
               io.emit("userCreated", change);
               break;
             case "delete":
+              console.log("Emitting userDeleted");
               io.emit("userDeleted", change);
               break;
             case "update":
+              console.log("Emitting userUpdated");
               io.emit("userUpdated", change);
               break;
           }
@@ -75,12 +77,15 @@ db.once("open", function () {
         case "chat":
           switch (change.operationType) {
             case "insert":
+              console.log("Emitting chatCreated");
               io.emit("chatCreated", change);
               break;
             case "delete":
+              console.log("Emitting chatDeleted");
               io.emit("chatDeleted", change);
               break;
             case "update":
+              console.log("Emitting chatUpdated");
               io.emit("chatUpdated", change);
               break;
           }
@@ -91,14 +96,27 @@ db.once("open", function () {
     processingQueue = false;
   };
 
+  const debounce = (func, delay) => {
+    let timeoutId;
+    return (...args) => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        func(...args);
+      }, delay);
+    };
+  };
+
+  const debouncedProcessQueue = debounce(processQueue, 100);
+
   userChangeStream.on("change", (change) => {
     eventQueue.push({ change, type: "user" });
-    processQueue();
+    debouncedProcessQueue();
   });
 
   chatChangeStream.on("change", (change) => {
+    console.log("chat changed");
     eventQueue.push({ change, type: "chat" });
-    processQueue();
+    debouncedProcessQueue();
   });
 });
 

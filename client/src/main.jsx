@@ -5,14 +5,18 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Root from "./routes/Root";
 import Auth from "./routes/Auth";
 import Home from "./routes/Home";
-import { store } from "./store/store";
+import { getStore } from "./store/store";
 import { Provider } from "react-redux";
-import SearchUser from "./routes/SearchUser";
+import AddPanel from "./routes/AddPanel";
 import ChatBox from "./routes/ChatBox";
 import ErrorPage from "./routes/ErrorPage";
 import { loader } from "./routes/Home";
+import { createGroupPanelLoader } from "./routes/CreateGroupPanel";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import RedirectInvite from "./routes/RedirectInvite";
+import InvitePanel from "./routes/InvitePanel";
+import CreateGroupPanel from "./routes/CreateGroupPanel";
+import DetailsPanel from "./routes/DetailsPanel";
 
 const router = createBrowserRouter([
   {
@@ -35,16 +39,27 @@ const router = createBrowserRouter([
             errorElement: <ErrorPage />,
             children: [
               {
-                path: "searchUser",
-                element: <SearchUser />,
+                path: "addPanel",
+                element: <AddPanel />,
+                children: [
+                  {
+                    path: "invitePanel",
+                    element: <InvitePanel />,
+                  },
+                  {
+                    path: "createGroup",
+                    element: <CreateGroupPanel />,
+                    loader: createGroupPanelLoader,
+                  },
+                ],
               },
               {
                 path: "chat/:chatObjId/:chatId",
                 element: <ChatBox />,
                 children: [
                   {
-                    path: "searchUser",
-                    element: <SearchUser />,
+                    path: "detailsPanel",
+                    element: <DetailsPanel />,
                   },
                 ],
               },
@@ -60,10 +75,12 @@ const router = createBrowserRouter([
   },
 ]);
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <GoogleOAuthProvider clientId={import.meta.env.VITE_CLIENTID}>
-    <Provider store={store}>
-      <RouterProvider router={router} />
-    </Provider>
-  </GoogleOAuthProvider>
-);
+getStore().then((store) => {
+  ReactDOM.createRoot(document.getElementById("root")).render(
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_CLIENTID}>
+      <Provider store={store}>
+        <RouterProvider router={router} />
+      </Provider>
+    </GoogleOAuthProvider>
+  );
+});

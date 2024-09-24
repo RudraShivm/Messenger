@@ -4,12 +4,13 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { WITHDRAW_ERROR } from "../constants/actionTypes";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Notifications } from 'react-push-notification';
+import Localbase from "localbase";
 
 const CustomToast = ({ message, buttonText, buttonFunc }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth?.authData?.user);
-  // console.log(message, buttonText);
   return (
     <div className="flex flex-row items-center gap-2">
       <p className="text-zinc-50 2xl:text-md lg:text-md xs:text-md">
@@ -49,19 +50,18 @@ function Root() {
   }, [errorObj]);
 
   useEffect(() => {
-    if (localStorage.getItem("profile")) {
-      //redirect causes full page reload, thats why we need to specify the following condition
-      if (!location.pathname.startsWith("/home/searchUser")) {
-        navigate("/home");
+    let db = new Localbase('db');
+    db.collection('messenger').doc({id : 1}).get().then(doc => {
+      if(!doc){
+        navigate("/auth");
       }
-    } else {
-      navigate("/auth");
-    }
+    })
   }, []);
 
   return (
     <div>
       <Outlet />
+      <Notifications/>
       <ToastContainer
         position="top-right"
         autoClose={5000}

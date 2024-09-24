@@ -25,8 +25,8 @@ export default {
         ],
       },
       backgroundImage: {
-        "hero-bg": "url('/public/images/hero_bg.webp')",
-        "tactile-noise": "url('/public/images/tactile_noise.png')",
+        "hero-bg": "url('/images/hero_bg.webp')",
+        "tactile-noise": "url('/images/tactile_noise.png')",
       },
     },
   },

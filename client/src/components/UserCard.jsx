@@ -29,7 +29,8 @@ function UserCard({ user, setLoading }) {
     } else {
       navigate("/home");
       setLoading(true);
-      dispatch(createChat(currentUser._id, user._id, navigate, setLoading));
+      const userArr = [currentUser._id, user._id];
+      dispatch(createChat(userArr, navigate, setLoading));
     }
   };
   return (

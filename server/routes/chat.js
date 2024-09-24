@@ -5,6 +5,8 @@ import {
   createChat,
   reactMessage,
   addToSeenBy,
+  updateNickName,
+  addToGroup,
 } from "../controller/chat.js";
 import { auth } from "../middleware/auth.js";
 const router = express.Router();
@@ -13,7 +15,9 @@ const router = express.Router();
 
 router.get("/load/:chatId", loadChat);
 router.post("/create", auth, createChat);
+router.post("/addToGroup", auth, addToGroup);
 router.post("/postMessage/:chatId", auth, postMessage);
 router.patch("/postEmoji", auth, reactMessage);
 router.patch("/addToSeenBy", auth, addToSeenBy);
+router.patch("/updateNickName", auth, updateNickName);
 export default router;

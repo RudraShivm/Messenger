@@ -5,7 +5,7 @@ function RedirectInvite() {
   const navigate = useNavigate();
   const { inviteId } = useParams();
   useEffect(() => {
-    navigate("/home/searchUser", { state: { inviteId } });
+    navigate("/home/addPanel", { state: { inviteId } });
   }, []);
 
   return <div></div>;

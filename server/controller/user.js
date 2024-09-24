@@ -26,7 +26,6 @@ async function fetchUserData(access_token) {
   }
 }
 
-
 export const GoogleSignIn = async (req, res) => {
   const { code } = req.body;
   try {
@@ -54,14 +53,14 @@ export const GoogleSignIn = async (req, res) => {
 
     // console.log("Starting database operation...");
     const dbStart = performance.now();
-    const existingUser = await user
+    let existingUser = await user
       .findOneAndUpdate(
         { email: userData.email },
         { $set: { refresh_token: userData.refresh_token } },
         { new: true }
       )
-      .populate("chats.user", "name profile_picture")
       .exec();
+
     const dbEnd = performance.now();
     // console.log(`Database operation took ${dbEnd - dbStart} ms`);
 
@@ -100,7 +99,6 @@ export const GoogleSignIn = async (req, res) => {
     res.status(500).json({ message: "Something went wrong", error });
   }
 };
-
 
 export const SignUp = async (req, res) => {
   const { name, about, profile_picture, email, password, confirmPassword } =
@@ -153,14 +151,12 @@ export const SignUp = async (req, res) => {
   }
 };
 
-
 export const SignIn = async (req, res) => {
   const { email, password } = req.body;
 
   try {
     let existingUser = await user
       .findOne({ email })
-      .populate("chats.user", "name profile_picture")
       .exec();
 
     if (!existingUser)
@@ -197,7 +193,6 @@ export const SignIn = async (req, res) => {
   }
 };
 
-
 export const SignOut = async (req, res) => {
   const { userId, access_token } = req.body;
   try {
@@ -229,7 +224,6 @@ export const SignOut = async (req, res) => {
   }
 };
 
-
 export const GetAllUsers = async (req, res) => {
   try {
     const users = await user.find().select("_id name profile_picture");
@@ -240,7 +234,6 @@ export const GetAllUsers = async (req, res) => {
   }
 };
 
-
 export const GetSingleUser = async (req, res) => {
   const { userId } = req.params;
   try {
@@ -248,7 +241,28 @@ export const GetSingleUser = async (req, res) => {
       .findOne({ _id: userId })
       .select("name profile_picture")
       .exec();
-    res.status(200).json({ existingUser });
+    res.status(200).json({ existingUser, hello:"hello" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+export const GetPopulatedUserArr = async (req, res) => {
+  const { userArr } = req.body;
+  try {
+    const result_userArr = [];
+    for (let usrId of userArr) {
+      const existingUser = await user.findOne({ _id: usrId }).exec();
+      if (existingUser) {
+        result_userArr.push({
+          _id: existingUser._id,
+          name: existingUser.name,
+          profile_picture: existingUser.profile_picture,
+        });
+      }
+    }
+    res.status(200).json({ result_userArr });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Something went wrong" });

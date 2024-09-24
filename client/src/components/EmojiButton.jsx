@@ -1,7 +1,7 @@
 import React from "react";
 import { useDispatch } from "react-redux";
-import { reactMessage } from "../actions/chat";
-
+import * as api from "../api/index";
+import { errorDispatcher } from "../functions/errorDispatcher";
 function EmojiButton({
   emoji,
   userId,
@@ -10,9 +10,17 @@ function EmojiButton({
   setActiveReactionBoxMsgId,
 }) {
   const dispatch = useDispatch();
-  const handleClick = () => {
-    dispatch(reactMessage(userId, chatId, messageId, emoji));
-    setActiveReactionBoxMsgId(null);
+  const handleClick = async() => {
+    try{
+      await api.reactMessage(userId, chatId, messageId, emoji);
+      setActiveReactionBoxMsgId(null);
+    }catch(error){
+      dispatch(
+        errorDispatcher(error.response?.status || 500, {
+          message: error.message,
+        })
+      );
+    }
   };
   return (
     <button

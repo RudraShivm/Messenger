@@ -1,24 +1,37 @@
 import rootReducer from "../reducers/index";
 import { createStore, compose, applyMiddleware } from "redux";
-import { thunk } from "redux-thunk";
-
-function loadFromLocalStorage() {
+import {thunk} from "redux-thunk";
+import Localbase from "localbase";
+import { syncMiddleware } from "./Middleware/syncMiddleware";
+import { composeWithDevTools } from 'redux-devtools-extension';
+async function loadFromLocalStorage() {
   try {
-    const state = localStorage.getItem("profile");
-    if (state === null) return undefined;
-    const stateObj = JSON.parse(state);
-    return { auth: { authData: stateObj } };
-  } catch (e) {
-    console.error("Could not load state", e);
+    let db = new Localbase("db");
+    const doc = await db.collection("messenger").doc({ id: 1 }).get();
+    if (doc) {
+      console.log("why here?")
+      const state = doc.profile;
+      return {
+        auth: { authData: state },
+      };
+    } else {
+      return undefined;
+    }
+  } catch (error) {
+    console.error("Could not load state", error);
     return undefined;
   }
 }
 
-// Use the above functions with your Redux store
-const persistedState = loadFromLocalStorage();
-
-export const store = createStore(
-  rootReducer,
-  persistedState,
-  compose(applyMiddleware(thunk))
-);
+// Function to get the store
+export async function getStore() {
+  const persistedState = await loadFromLocalStorage();
+  const store = createStore(
+    rootReducer,
+    persistedState,
+    composeWithDevTools(
+      applyMiddleware(thunk),
+    )
+  );
+  return store;
+}

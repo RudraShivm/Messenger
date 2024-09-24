@@ -11,7 +11,13 @@ const UserSchema = mongoose.Schema({
   refresh_token: { type: String },
   chats: [
     {
-      user: { type: String, ref: "UserModel" },
+      chatType: String,
+      chatCardInfo: {
+        _id: String,
+        name: String,
+        about: String,
+        profile_picture: String,
+      },
       chat: { type: mongoose.Schema.Types.ObjectId, ref: "ChatModel" },
       lastMessageInfo: {
         sender: {
@@ -49,11 +55,12 @@ const UserSchema = mongoose.Schema({
 
         seenBy: [
           {
-            type: String,
-            ref: "UserModel",
+            _id: String,
+            name: String,
+            profile_picture: String,
           },
         ],
-        
+
         time: {
           type: Date,
           default: Date.now,
@@ -64,7 +71,10 @@ const UserSchema = mongoose.Schema({
   ],
   friends: [
     {
-      user: { type: mongoose.Schema.Types.ObjectId, ref: "UserModel" },
+      _id: String,
+      name: String,
+      about: String,
+      profile_picture: String,
     },
   ],
 });
@@ -76,6 +86,16 @@ UserSchema.pre("save", function (next) {
     let timeB = new Date(b.lastMessageInfo.time).getTime();
 
     return timeA - timeB;
+  });
+
+  const uniqueFriends = new Set();
+  this.friends = this.friends.filter((friend) => {
+    if (uniqueFriends.has(friend._id)) {
+      return false;
+    } else {
+      uniqueFriends.add(friend._id);
+      return true;
+    }
   });
 
   next();
